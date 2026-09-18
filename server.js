@@ -1,11 +1,22 @@
 import app from './app.js';
 import { connectToDb } from './src/db/connect.js';
+import mongoose from 'mongoose';
 
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB before accepting requests.
 await connectToDb();
+
+// Connect to MongoDB using Mongoose.
+try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+        dbName: process.env.MONGODB_DB_NAME
+    });
+} catch (error) {
+    console.error('Mongoose failed to connect to MongoDB:', error.message);
+    process.exit(1);
+}
 
 // Start the live-reload WebSocket server in development mode.
 if (NODE_ENV.includes('dev')) {
