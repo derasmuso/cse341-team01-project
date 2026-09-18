@@ -3,7 +3,10 @@
 	"dependencies": {
 		"ejs": "^6.0.1",
 		"express": "^5.1.0",
-		"mongodb": "^7.5.0"
+		"mongodb": "^7.5.0",
+		"mongoose": "^9.10.1",
+		"swagger-jsdoc": "^6.3.0",
+		"swagger-ui-express": "^5.0.1"
 	},
 	"scripts": {
 		"db:import": "node --env-file=.env src/db/import.js",
@@ -13,7 +16,8 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"lint": "eslint .",
-		"lint:fix": "eslint . --fix"
+		"lint:fix": "eslint . --fix",
+		"swagger": "node swagger.js"
 	},
 	"type": "module",
 	"version": "1.0.0",

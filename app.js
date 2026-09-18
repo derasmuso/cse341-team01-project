@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import pkg from './package.json' with { type: 'json' };
 import globalMiddleware from './src/middleware/global.js';
 import routes from './src/routes/router.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json' with { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);
@@ -26,6 +28,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(globalMiddleware);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/', routes);
 
 // Catch requests that did not match a route.
