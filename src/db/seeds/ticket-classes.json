@@ -1,5 +1,6 @@
 [
     {
+        "availableDays": ["Monday", "Wednesday"],
         "class": "standard",
         "name": "Standard Class",
         "pricePerKm": 80,
@@ -11,6 +12,7 @@
         "description": "Enjoy scenic views from comfortable seats with complimentary refreshments"
     },
     {
+        "availableDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         "class": "premium",
         "name": "Premium Class",
         "pricePerKm": 150,
@@ -23,6 +25,7 @@
         "description": "Enhanced experience with meal service and panoramic viewing windows"
     },
     {
+        "availableDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
         "class": "first",
         "name": "First Class",
         "pricePerKm": 250,
