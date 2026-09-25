@@ -2,11 +2,19 @@ import railTripsRouter from './trips.js';
 import { trainsApi, trainsPage } from './trains.js';
 import { Router } from 'express';
 import { homePage, aboutPage, testErrorPage } from './index.js';
+import authRoutes from './auth-routes.js';
+import adminRoutes from './admin-routes.js';
 
 const router = Router();
 
 // Home page
 router.get('/', homePage);
+
+// Authentication and authorization routes
+router.use('/', authRoutes);
+
+// Admin routes
+router.use('/admin', adminRoutes);
 
 // About page
 router.get('/about', aboutPage);
