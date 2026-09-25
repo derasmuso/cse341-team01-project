@@ -1,16 +1,30 @@
-import { getDb } from '../db/connect.js';
 import { generateConfirmationCode } from '../includes/helpers.js';
+
+import { getScheduleById } from '../models/schedules.js';
+import { getTripById } from '../models/trips.js';
+import {
+    getAllTicketClasses
+} from '../models/ticket-classes.js';
+import {
+    createConfirmation
+} from '../models/confirmations.js';
 
 const bookingPage = async (req, res) => {
     const { scheduleId } = req.params;
 
-    const db = getDb();
-    const schedule = await db.collection('schedules').findOne({ id: Number(scheduleId) });
-    const trip = await db.collection('trips').findOne({ id: schedule.tripId });
-    const ticketClasses = await db.collection('ticketClasses').find({}).toArray();
+    const schedule = await getScheduleById(scheduleId);
+    console.log('scheduleId:', scheduleId);
+    console.log('schedule:', schedule);
+
+    const trip = await getTripById(schedule.tripId);
+    console.log('trip:', trip);
+    console.log('tripId:', schedule.tripId);
+
+    const ticketClasses = await getAllTicketClasses();
+
     const ticketOptions = ticketClasses.map((ticketClass) => ({
         class: ticketClass.class,
-        name: ticketClass.name,
+        name: ticketClass.class,
         price: trip.distance * ticketClass.pricePerKm,
         amenities: ticketClass.amenities,
         description: ticketClass.description
@@ -29,7 +43,8 @@ const processBookingRequest = async (req, res) => {
         createdAt: new Date().toISOString(),
         ...req.body
     };
-    await getDb().collection('confirmations').insertOne(confirmation);
+
+    await createConfirmation(confirmation);
 
     res.redirect(`/trips/confirmation/${confirmation.id}`);
 };
