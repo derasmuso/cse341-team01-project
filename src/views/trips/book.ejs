@@ -1,4 +1,5 @@
 <%- include('../partials/header') %>
+
 <article class="booking-page">
     <div class="route-header">
         <div class="route-header-content">
@@ -11,13 +12,50 @@
         <input type="hidden" name="scheduleId" value="<%= schedule.id %>">
         <input type="hidden" name="tripId" value="<%= schedule.tripId %>">
 
+        <!-- Day Selection Section -->
+        <section class="day-selection">
+            <h2 class="section-title">Select The Day</h2>
+        
+            <div class="schedule-info">
+                <div class="time-display">
+                    <span class="departure-time">
+                        <%= schedule.departureTime %>
+                    </span>
+                    <span class="time-separator">→</span>
+                    <span class="arrival-time">
+                        <%= schedule.arrivalTime %>
+                    </span>
+                </div>
+                <div class="days-display">
+                    <% if (schedule && schedule.daysOfWeek) { %>
+                        <% schedule.daysOfWeek.forEach((day, index)=> { %>
+                            <label class="day-pill<%= index === 0 ? ' selected' : '' %>" for="day-<%= index %>">
+                                <input type="radio" name="selectedDay" id="day-<%= index %>" value="<%= day %>" <%=index===0
+                                    ? 'checked' : '' %>
+                                required
+                                >
+                                <span class="day-text">
+                                    <%= day %>
+                                </span>
+                            </label>
+                            <% }) %>
+                                <% } %>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ticket Selection Section -->
         <section class="ticket-selection">
             <h2 class="section-title">Select Your Ticket</h2>
             
             <div class="ticket-options">
                 <% if (ticketOptions) { %>
                     <% ticketOptions.forEach((ticket, index) => { %>
-                        <label class="ticket-card" for="ticket-<%= ticket.class %>">
+                        <label 
+                            class="ticket-card" 
+                            for="ticket-<%= ticket.class %>"
+                            data-ticket-class="<%= ticket.class %>"    
+                        >
                             <input 
                                 type="radio" 
                                 name="ticketClass" 
@@ -25,7 +63,7 @@
                                 value="<%= ticket.class %>"
                                 data-name="<%= ticket.name %>"
                                 data-price="<%= ticket.price %>"
-                                <%= index === 1 ? 'checked' : '' %>
+                                <%= index === 0 ? 'checked' : '' %>
                                 required
                             >
                             <div class="ticket-content">
@@ -56,34 +94,7 @@
             </div>
         </section>
 
-        <section class="day-selection">
-            <h2 class="section-title">Select The Day</h2>
-            
-            <div class="schedule-info">
-                <div class="time-display">
-                    <span class="departure-time"><%= schedule.departureTime %></span>
-                    <span class="time-separator">→</span>
-                    <span class="arrival-time"><%= schedule.arrivalTime %></span>
-                </div>
-                <div class="days-display">
-                    <% if (schedule && schedule.daysOfWeek) { %>
-                        <% schedule.daysOfWeek.forEach((day, index) => { %>
-                            <label class="day-pill<%= index === 0 ? ' selected' : '' %>" for="day-<%= index %>">
-                                <input
-                                    type="radio"
-                                    name="selectedDay"
-                                    id="day-<%= index %>"
-                                    value="<%= day %>"
-                                    <%= index === 0 ? 'checked' : '' %>
-                                    required
-                                >
-                                <span class="day-text"><%= day %></span>
-                            </label>
-                        <% }) %>
-                    <% } %>
-                </div>
-            </div>
-        </section>
+        
 
         <section class="passengers-section">
             <div class="passengers-header">
@@ -387,21 +398,63 @@
     };
 
     // Event Listeners
-    selectedDayLabels.forEach((label) => {
-        label.addEventListener('click', (e) => {
-            e.preventDefault();
-            const label = e.currentTarget;
+    const updateTicketAvailability = async (day) => {
+        try {
+            const response = await fetch(
+                `/api/ticket-classes?day=${encodeURIComponent(day.toLowerCase())}`
+            );
 
-            // Update visual and input selection
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+
+            const availableTicketClasses = await response.json();
+
+            const availableClasses = new Set(
+                availableTicketClasses.map((ticketClass) => ticketClass.class)
+            );
+
+            ticketRadios.forEach((radio) => {
+                const ticketCard = radio.closest('.ticket-card');
+                const isAvailable = availableClasses.has(radio.value);
+
+                radio.disabled = !isAvailable;
+                ticketCard.classList.toggle('unavailable', !isAvailable);
+
+                if (!isAvailable) {
+                    radio.checked = false;
+                }
+            });
+
+            const selectedRadio = document.querySelector(
+                'input[name="ticketClass"]:checked'
+            );
+
+            if (!selectedRadio) {
+                const firstAvailableRadio = Array.from(ticketRadios)
+                    .find((radio) => !radio.disabled);
+
+                if (firstAvailableRadio) {
+                    firstAvailableRadio.checked = true;
+                    firstAvailableRadio.dispatchEvent(new Event('change'));
+                }
+            }
+        } catch (error) {
+            console.error('Error retrieving ticket-class availability:', error);
+        }
+    };
+
+    selectedDayLabels.forEach((label) => {
+        const dayInput = label.querySelector('input');
+
+        dayInput.addEventListener('change', async () => {
             selectedDayLabels.forEach((lbl) => {
                 lbl.classList.remove('selected');
-                lbl.querySelector('input').checked = false;
-                lbl.querySelector('input').removeAttribute('checked');
             });
 
             label.classList.add('selected');
-            label.querySelector('input').checked = true;
-            label.querySelector('input').setAttribute('checked', true);
+
+            await updateTicketAvailability(dayInput.value);
         });
     });
 
@@ -451,6 +504,15 @@
         ticketPrice = parseInt(selectedRadio.dataset.price);
     }
     updateSummary();
+
+    // Initialize ticket availability based on the initially selected day
+    const initialDay = document.querySelector(
+            'input[name="selectedDay"]:checked'
+        );
+
+        if (initialDay) {
+            updateTicketAvailability(initialDay.value);
+        }
 </script>
 
 <%- include('../partials/footer') %>
