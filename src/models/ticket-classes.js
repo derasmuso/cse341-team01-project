@@ -1,3 +1,5 @@
+// src/models/ticket-classes.js
+
 import TicketClass from './schemas/ticket-classes.js';
 
 /**
@@ -17,7 +19,7 @@ const getAllTicketClasses = async () => {
  */
 const getTicketClassesForDay = async (day) => {
     return TicketClass.find({
-        availableDays: day()
+        availableDays: day
     });
 };
 

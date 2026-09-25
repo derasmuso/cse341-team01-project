@@ -1,20 +1,18 @@
 [
     {
-        "availableDays": ["Monday", "Wednesday"],
         "class": "standard",
-        "name": "Standard Class",
         "pricePerKm": 80,
         "amenities": [
             "Comfortable seats",
             "Large windows",
             "Complimentary tea"
         ],
-        "description": "Enjoy scenic views from comfortable seats with complimentary refreshments"
+        "description": "Enjoy scenic views from comfortable seats with complimentary refreshments",
+        "availableDays": ["tuesday", "thursday" ]
+        
     },
     {
-        "availableDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         "class": "premium",
-        "name": "Premium Class",
         "pricePerKm": 150,
         "amenities": [
             "Panoramic windows",
@@ -22,12 +20,11 @@
             "Reserved seating",
             "Souvenir photo"
         ],
-        "description": "Enhanced experience with meal service and panoramic viewing windows"
+        "description": "Enhanced experience with meal service and panoramic viewing windows",
+        "availableDays": ["monday", "thursday", "wednesday", "thursday", "friday"]
     },
     {
-        "availableDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
         "class": "first",
-        "name": "First Class",
         "pricePerKm": 250,
         "amenities": [
             "Private compartment",
@@ -36,6 +33,7 @@
             "Priority boarding",
             "Souvenir gift"
         ],
-        "description": "Ultimate luxury with private seating and full dining service"
+        "description": "Ultimate luxury with private seating and full dining service",
+        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     }
 ]

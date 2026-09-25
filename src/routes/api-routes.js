@@ -53,7 +53,7 @@ const router = Router();
  *                     example: standard
  *                   pricePerKm:
  *                     type: number
- *                     example: 0.05
+ *                     example: 80
  *                   amenities:
  *                     type: array
  *                     items:
