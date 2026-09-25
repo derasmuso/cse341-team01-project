@@ -1,3 +1,5 @@
+// tests/global-setup.js
+
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const setup = async (project) => {
