@@ -71,7 +71,7 @@ export async function login(req, res, next) {
             role: user.role.name,
         };
 
-        return res.redirect('/');
+        return res.redirect('/admin/dashboard');
     } catch (error) {
         return next(error);
     }
