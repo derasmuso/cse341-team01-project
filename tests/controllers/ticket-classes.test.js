@@ -130,6 +130,11 @@ describe('Ticket class controller', () => {
         });
 
         test('returns 400 for an invalid day', async () => {
+            const modelSpy = vi.spyOn(
+                ticketClassModel,
+                'getTicketClassesForDay'
+            );
+
             const req = {
                 query: {
                     day: 'invalid'
@@ -145,9 +150,7 @@ describe('Ticket class controller', () => {
                 message: 'Invalid day'
             });
 
-            expect(
-                ticketClassModel.getTicketClassesForDay
-            ).not.toHaveBeenCalled();
+            expect(modelSpy).not.toHaveBeenCalled();
         });
 
         test('returns 400 when the day is missing', async () => {

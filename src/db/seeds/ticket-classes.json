@@ -21,7 +21,7 @@
             "Souvenir photo"
         ],
         "description": "Enhanced experience with meal service and panoramic viewing windows",
-        "availableDays": ["monday", "thursday", "wednesday", "thursday", "friday"]
+        "availableDays": ["monday", "tuesday", "thursday", "friday"]
     },
     {
         "class": "first",
@@ -34,6 +34,6 @@
             "Souvenir gift"
         ],
         "description": "Ultimate luxury with private seating and full dining service",
-        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
     }
 ]

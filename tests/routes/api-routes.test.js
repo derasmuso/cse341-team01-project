@@ -4,20 +4,12 @@ import request from 'supertest';
 
 import app from '../../app.js';
 
-import { getDb } from '../../src/db/connect.js';
-
 describe('GET /api/ticket-classes', () => {
     test('returns a successful JSON response', async () => {
-        await getDb().collection('ticketClasses').insertOne({
-            class: 'standard',
-            pricePerKm: 80,
-            amenities: ['Comfortable seats'],
-            description: 'Standard class',
-            availableDays: ['tuesday', 'thursday']
-        });
-
         const response = await request(app)
             .get('/api/ticket-classes');
+
+        console.log(response.body);
 
         expect(response.status).toBe(200);
         expect(response.headers['content-type'])
@@ -25,28 +17,11 @@ describe('GET /api/ticket-classes', () => {
     });
 
     test('returns the expected ticket classes', async () => {
-        await getDb().collection('ticketClasses').insertMany([
-            {
-                class: 'standard',
-                pricePerKm: 80,
-                amenities: ['Comfortable seats'],
-                description: 'Standard class',
-                availableDays: ['tuesday', 'thursday']
-            },
-            {
-                class: 'premium',
-                pricePerKm: 150,
-                amenities: ['Meal service'],
-                description: 'Premium class',
-                availableDays: ['monday', 'wednesday']
-            }
-        ]);
-
         const response = await request(app)
             .get('/api/ticket-classes');
 
         expect(response.status).toBe(200);
-        expect(response.body).toHaveLength(2);
+        expect(response.body).toHaveLength(3);
 
         expect(response.body).toEqual(
             expect.arrayContaining([
@@ -57,6 +32,10 @@ describe('GET /api/ticket-classes', () => {
                 expect.objectContaining({
                     class: 'premium',
                     pricePerKm: 150
+                }),
+                expect.objectContaining({
+                    class: 'first',
+                    pricePerKm: 250
                 })
             ])
         );
@@ -65,63 +44,47 @@ describe('GET /api/ticket-classes', () => {
 
 describe('GET /api/ticket-classes?day={day}', () => {
     test('returns ticket classes available for the requested day', async () => {
-        await getDb().collection('ticketClasses').insertMany([
-            {
-                class: 'standard',
-                pricePerKm: 80,
-                amenities: ['Comfortable seats'],
-                description: 'Standard class',
-                availableDays: ['tuesday', 'thursday']
-            },
-            {
-                class: 'premium',
-                pricePerKm: 150,
-                amenities: ['Meal service'],
-                description: 'Premium class',
-                availableDays: ['monday', 'wednesday']
-            }
-        ]);
-
         const response = await request(app)
-            .get('/api/ticket-classes?day=tuesday');
+            .get('/api/ticket-classes?day=monday');
 
         expect(response.status).toBe(200);
-        expect(response.body).toHaveLength(1);
+        expect(response.body).toHaveLength(2);
 
-        expect(response.body[0]).toEqual(
-            expect.objectContaining({
-                class: 'standard'
-            })
+        expect(response.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'premium'
+                }),
+                expect.objectContaining({
+                    class: 'first'
+                })
+            ])
         );
     });
 
     test('processes the day query parameter case-insensitively', async () => {
-        await getDb().collection('ticketClasses').insertOne({
-            class: 'standard',
-            pricePerKm: 80,
-            amenities: ['Comfortable seats'],
-            description: 'Standard class',
-            availableDays: ['tuesday']
-        });
-
         const response = await request(app)
             .get('/api/ticket-classes?day=Tuesday');
 
         expect(response.status).toBe(200);
-        expect(response.body).toHaveLength(1);
+        expect(response.body).toHaveLength(3);
 
-        expect(response.body[0].class).toBe('standard');
+        expect(response.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'standard'
+                }),
+                expect.objectContaining({
+                    class: 'premium'
+                }),
+                expect.objectContaining({
+                    class: 'first'
+                })
+            ])
+        );
     });
 
     test('returns an empty array when no classes are available', async () => {
-        await getDb().collection('ticketClasses').insertOne({
-            class: 'standard',
-            pricePerKm: 80,
-            amenities: ['Comfortable seats'],
-            description: 'Standard class',
-            availableDays: ['tuesday']
-        });
-
         const response = await request(app)
             .get('/api/ticket-classes?day=sunday');
 

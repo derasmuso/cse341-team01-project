@@ -26,6 +26,7 @@ const getAllTicketClasses = async (req, res) => {
     } catch (error) {
         console.error('Error retrieving ticket classes:', error);
 
+        console.error(error.stack)
         return res.status(500).json({
             message: 'Internal server error'
         });

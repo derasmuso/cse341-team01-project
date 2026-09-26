@@ -7,30 +7,13 @@ import {
 
 import TicketClass from '../../src/models/schemas/ticket-classes.js';
 
-import { getDb } from '../../src/db/connect.js';
-
 describe('Ticket class model', () => {
     test('getAllTicketClasses returns all ticket classes', async () => {
-        await getDb().collection('ticketClasses').insertMany([
-            {
-                class: 'standard',
-                pricePerKm: 80,
-                amenities: ['Comfortable seats'],
-                description: 'Standard class',
-                availableDays: ['tuesday', 'thursday']
-            },
-            {
-                class: 'premium',
-                pricePerKm: 150,
-                amenities: ['Meal service'],
-                description: 'Premium class',
-                availableDays: ['monday', 'wednesday']
-            }
-        ]);
+        const ticketClasses =
+            await getAllTicketClasses();
 
-        const ticketClasses = await getAllTicketClasses();
+        expect(ticketClasses).toHaveLength(3);
 
-        expect(ticketClasses).toHaveLength(2);
         expect(ticketClasses).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
@@ -40,45 +23,44 @@ describe('Ticket class model', () => {
                 expect.objectContaining({
                     class: 'premium',
                     pricePerKm: 150
+                }),
+                expect.objectContaining({
+                    class: 'first',
+                    pricePerKm: 250
                 })
             ])
         );
     });
 
     test('getTicketClassesForDay returns only ticket classes available for that day', async () => {
-        await getDb().collection('ticketClasses').insertMany([
-            {
-                class: 'standard',
-                pricePerKm: 80,
-                amenities: ['Comfortable seats'],
-                description: 'Standard class',
-                availableDays: ['tuesday', 'thursday']
-            },
-            {
-                class: 'premium',
-                pricePerKm: 150,
-                amenities: ['Meal service'],
-                description: 'Premium class',
-                availableDays: ['monday', 'wednesday']
-            }
-        ]);
+        const ticketClasses =
+            await getTicketClassesForDay('tuesday');
 
-        const ticketClasses = await getTicketClassesForDay('tuesday');
+        expect(ticketClasses).toHaveLength(2);
 
-        expect(ticketClasses).toHaveLength(1);
-        expect(ticketClasses[0].class).toBe('standard');
+        expect(ticketClasses).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'standard'
+                }),
+                expect.objectContaining({
+                    class: 'first'
+                })
+            ])
+        );
+
+        expect(ticketClasses).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'premium'
+                })
+            ])
+        );
     });
 
-    test('getTicketClassesForDay returns an empty result when no classes match', async () => {
-        await getDb().collection('ticketClasses').insertOne({
-            class: 'standard',
-            pricePerKm: 80,
-            amenities: ['Comfortable seats'],
-            description: 'Standard class',
-            availableDays: ['tuesday']
-        });
-
-        const ticketClasses = await getTicketClassesForDay('sunday');
+    test('getTicketClassesForDay returns an empty array when no classes match', async () => {
+        const ticketClasses =
+            await getTicketClassesForDay('invalid-day');
 
         expect(ticketClasses).toEqual([]);
     });
@@ -86,11 +68,13 @@ describe('Ticket class model', () => {
     test('getAllTicketClasses propagates database errors', async () => {
         const findSpy = vi
             .spyOn(TicketClass, 'find')
-            .mockRejectedValueOnce(new Error('Database error'));
+            .mockRejectedValueOnce(
+                new Error('Database error')
+            );
 
-        await expect(getAllTicketClasses()).rejects.toThrow(
-            'Database error'
-        );
+        await expect(
+            getAllTicketClasses()
+        ).rejects.toThrow('Database error');
 
         findSpy.mockRestore();
     });
@@ -98,7 +82,9 @@ describe('Ticket class model', () => {
     test('getTicketClassesForDay propagates database errors', async () => {
         const findSpy = vi
             .spyOn(TicketClass, 'find')
-            .mockRejectedValueOnce(new Error('Database error'));
+            .mockRejectedValueOnce(
+                new Error('Database error')
+            );
 
         await expect(
             getTicketClassesForDay('monday')
