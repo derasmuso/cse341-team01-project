@@ -57,6 +57,20 @@ article.booking-page {
                         box-shadow: var(--shadow-md);
                     }
 
+                    &.unavailable{
+                        opacity: 0.5;
+                        cursor:not-allowed;
+
+                        &:hover {
+                            box-shadow: none;
+                        }
+
+                        .ticket-content {
+                            background-color: var(--clr-surface-alt);pointer-events: none;
+                        }
+                    }
+
+
                     input[type="radio"] {
                         position: absolute;
                         opacity: 0;
