@@ -118,7 +118,7 @@ describe('Booking ticket availability', () => {
             })
         );
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         expect(
             document.querySelector('#ticket-standard')
@@ -145,7 +145,7 @@ describe('Booking ticket availability', () => {
 
         vi.stubGlobal('fetch', fetchMock);
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         const wednesday = document.querySelector(
             '#day-1'
@@ -178,7 +178,7 @@ describe('Booking ticket availability', () => {
             })
         );
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -209,7 +209,7 @@ describe('Booking ticket availability', () => {
             })
         );
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -240,7 +240,7 @@ describe('Booking ticket availability', () => {
             })
         );
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -285,7 +285,7 @@ describe('Booking ticket availability', () => {
 
         vi.stubGlobal('fetch', fetchMock);
 
-        await import('../../src/public/js/booking.js');
+        await import('/public/js/booking.js');
 
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -327,7 +327,7 @@ describe('Booking ticket availability', () => {
         );
 
         await expect(
-            import('../../src/public/js/booking.js')
+            import('/public/js/booking.js')
         ).resolves.toBeDefined();
 
         expect(consoleError).toHaveBeenCalled();
