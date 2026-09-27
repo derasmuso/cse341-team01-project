@@ -109,11 +109,21 @@ describe('Ticket class controller', () => {
             expect(res.json).toHaveBeenCalledWith(ticketClasses);
         });
 
-        test('returns an empty result when no classes are available', async () => {
+        test('returns ticket classes available on Sunday', async () => {
+            const ticketClasses = [
+                {
+                    class: 'first',
+                    pricePerKm: 250,
+                    amenities: ['Private compartment'],
+                    description: 'Ultimate luxury',
+                    availableDays: ['sunday']
+                }
+            ];
+
             vi.spyOn(
                 ticketClassModel,
                 'getTicketClassesForDay'
-            ).mockResolvedValue([]);
+            ).mockResolvedValue(ticketClasses);
 
             const req = {
                 query: {
@@ -125,8 +135,12 @@ describe('Ticket class controller', () => {
 
             await getTicketClassesForDay(req, res);
 
+            expect(
+                ticketClassModel.getTicketClassesForDay
+            ).toHaveBeenCalledWith('sunday');
+
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith([]);
+            expect(res.json).toHaveBeenCalledWith(ticketClasses);
         });
 
         test('returns 400 for an invalid day', async () => {

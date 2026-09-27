@@ -34,14 +34,14 @@ describe('Ticket class model', () => {
 
     test('getTicketClassesForDay returns only ticket classes available for that day', async () => {
         const ticketClasses =
-            await getTicketClassesForDay('tuesday');
+            await getTicketClassesForDay('monday');
 
         expect(ticketClasses).toHaveLength(2);
 
         expect(ticketClasses).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
-                    class: 'standard'
+                    class: 'premium'
                 }),
                 expect.objectContaining({
                     class: 'first'
@@ -52,17 +52,25 @@ describe('Ticket class model', () => {
         expect(ticketClasses).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
-                    class: 'premium'
+                    class: 'standard'
                 })
             ])
         );
     });
 
-    test('getTicketClassesForDay returns an empty array when no classes match', async () => {
+    test('getTicketClassesForDay returns the ticket classes available on Sunday', async () => {
         const ticketClasses =
-            await getTicketClassesForDay('invalid-day');
+            await getTicketClassesForDay('sunday');
 
-        expect(ticketClasses).toEqual([]);
+        expect(ticketClasses).toHaveLength(1);
+
+        expect(ticketClasses).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'first'
+                })
+            ])
+        );
     });
 
     test('getAllTicketClasses propagates database errors', async () => {

@@ -103,7 +103,7 @@ const router = Router();
  *                   example: Internal server error
  */
 router.get('/ticket-classes', (req, res) => {
-    if ('day' in req.query.day) {
+    if (req.query.day !== undefined) {
         return getTicketClassesForDay(req, res);
     }
 

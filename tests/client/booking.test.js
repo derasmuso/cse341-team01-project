@@ -99,6 +99,40 @@ describe('Booking ticket availability', () => {
         createBookingDom();
     });
 
+    test('renders ticket class options', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn().mockResolvedValue({
+                ok: true,
+                json: async () => [
+                    {
+                        class: 'standard'
+                    },
+                    {
+                        class: 'premium'
+                    },
+                    {
+                        class: 'first'
+                    }
+                ]
+            })
+        );
+
+        await import('../../src/public/js/booking.js');
+
+        expect(
+            document.querySelector('#ticket-standard')
+        ).not.toBeNull();
+
+        expect(
+            document.querySelector('#ticket-premium')
+        ).not.toBeNull();
+
+        expect(
+            document.querySelector('#ticket-first')
+        ).not.toBeNull();
+    });
+
     test('requests ticket classes when the selected day changes', async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,

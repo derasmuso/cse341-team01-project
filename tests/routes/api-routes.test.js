@@ -84,12 +84,21 @@ describe('GET /api/ticket-classes?day={day}', () => {
         );
     });
 
-    test('returns an empty array when no classes are available', async () => {
+    test('returns the first class when Sunday is requested', async () => {
         const response = await request(app)
             .get('/api/ticket-classes?day=sunday');
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual([]);
+        expect(response.body).toHaveLength(1);
+
+        expect(response.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    class: 'first',
+                    pricePerKm: 250
+                })
+            ])
+        );
     });
 
     test('returns 400 for an invalid day', async () => {

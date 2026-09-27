@@ -34,6 +34,6 @@
             "Souvenir gift"
         ],
         "description": "Ultimate luxury with private seating and full dining service",
-        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     }
 ]
