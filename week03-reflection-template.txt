@@ -1,0 +1,43 @@
+# Week 03 Reflection
+
+Draft: Confirm the assigned feature set and add the real issue, PR, and video URLs before submitting. Review the wording so it accurately reflects your experience.
+
+## Selected Feature Set
+
+1. Which feature set were you assigned to complete?
+
+Answer: The local implementation covers Feature Sets 1-5: Trips, Schedules, Bookings, Ticket Classes, and Stations. My specific team assignment was [enter the feature set your team assigned to you].
+
+## Links
+
+2. Provide your walk-through video link. This video must demonstrate your feature working locally and follow the script in the assignment. (If you created more than one video for your feature set, include them all here.)
+
+Video link: [Add the URL after recording and uploading the walkthrough.]
+
+3. Provide links to all GitHub Issues you created for your selected feature set.
+
+Issue links: [Add the URL(s) of the issue(s) created in your team's repository.]
+
+4. Provide links to all Pull Requests you created for your selected feature set.
+
+Pull request links: [Add the URL(s) of the PR(s) opened against your team's repository.]
+
+## Implementation Reflection
+
+5. Why did you decide to split your Feature Set into multiple GitHub issues or use a single issue?
+
+Answer: I would keep each feature set together as an end-to-end issue rather than divide its schema, model, API, and frontend work among separate issues. Those layers share data contracts, so implementing and reviewing them together makes the complete behavior easier to test. Separate issues for different feature sets would still keep each review focused.
+
+6. What is one thing you know after completing the assignment that you did not know beforehand?
+
+Answer: I learned that Mongoose uses its own connection even when the application also uses the MongoDB driver. The test setup must connect Mongoose to the same isolated in-memory database so model-backed API tests use the seeded test data without touching the team database.
+
+7. What did you do to make your pull requests clear and ready for teammate review?
+
+Answer: I added API and booking-flow tests, ran the full test suite (8 tests passed) and ESLint, and checked the pages locally. I have not opened a pull request yet. When I open it, I will include the issue link, a change summary, the verified test steps, and the walkthrough video link.
+
+## Team Process
+
+8. What is one thing you can do personally to help your team be more effective next week?
+
+Answer: I can keep my issue and PR status current, share blockers early in the team channel, and respond to review feedback promptly so teammates can coordinate integration work.

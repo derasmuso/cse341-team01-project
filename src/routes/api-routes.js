@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { getAllTrips, getTripById } from "../controllers/trips.js";
+import { getSchedulesForTrip, getSchedulesForTripAndMonth } from "../controllers/schedules.js";
+import { getAllStations, getStationById } from "../controllers/stations.js";
+import { getAllTicketClasses, getTicketClassesForDay } from "../controllers/ticket-classes.js";
+import { getAllBookings } from "../controllers/bookings.js";
+import { requireApiRole } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -52,6 +57,48 @@ const router = Router();
  *         imageUrl:
  *           type: string
  *           example: /images/routes/alpine-panorama.png
+ *     Schedule:
+ *       type: object
+ *       properties:
+ *         id: { type: integer, example: 1 }
+ *         tripId: { type: string, example: alpine-panorama }
+ *         departureTime: { type: string, example: '08:30' }
+ *         arrivalTime: { type: string, example: '13:00' }
+ *         daysOfWeek:
+ *           type: array
+ *           items: { type: string }
+ *     Station:
+ *       type: object
+ *       properties:
+ *         id: { type: string, example: nagoya }
+ *         name: { type: string, example: Nagoya Station }
+ *         prefecture: { type: string, example: Aichi }
+ *         region: { type: string, example: central }
+ *         facilities:
+ *           type: array
+ *           items: { type: string }
+ *         description: { type: string }
+ *     TicketClass:
+ *       type: object
+ *       properties:
+ *         class: { type: string, example: standard }
+ *         name: { type: string, example: Standard Class }
+ *         pricePerKm: { type: number, example: 80 }
+ *         availableDays:
+ *           type: array
+ *           items: { type: string }
+ *     Booking:
+ *       type: object
+ *       properties:
+ *         id: { type: string, example: JRABC12345 }
+ *         tripId: { type: string }
+ *         scheduleId: { type: string }
+ *         ticketClass: { type: string }
+ *         selectedDay: { type: string }
+ *         passengers:
+ *           type: array
+ *           items: { type: object }
+ *         createdAt: { type: string, format: date-time }
  *     Error:
  *       type: object
  *       properties:
@@ -118,5 +165,117 @@ router.get("/trips", getAllTrips);
  *               $ref: '#/components/schemas/Error'
  */
 router.get("/trips/:id", getTripById);
+
+/**
+ * @openapi
+ * /api/trips/{id}/schedules:
+ *   get:
+ *     summary: Get schedules for a trip, optionally filtered by month
+ *     tags: [Schedules]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         schema: { type: integer, minimum: 1, maximum: 12 }
+ *     responses:
+ *       200:
+ *         description: Matching schedules
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/Schedule' } }
+ *       400:
+ *         description: Invalid month
+ */
+router.get("/trips/:id/schedules", (req, res, next) => {
+	if (req.query.month !== undefined) {
+		return getSchedulesForTripAndMonth(req, res, next);
+	}
+	return getSchedulesForTrip(req, res, next);
+});
+
+/**
+ * @openapi
+ * /api/stations:
+ *   get:
+ *     summary: Get all stations
+ *     tags: [Stations]
+ *     responses:
+ *       200:
+ *         description: Station list
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/Station' } }
+ */
+router.get("/stations", getAllStations);
+
+/**
+ * @openapi
+ * /api/stations/{id}:
+ *   get:
+ *     summary: Get a station by its id
+ *     tags: [Stations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Station details
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Station' }
+ *       404: { description: Station not found }
+ */
+router.get("/stations/:id", getStationById);
+
+/**
+ * @openapi
+ * /api/ticket-classes:
+ *   get:
+ *     summary: Get ticket classes, optionally available on a day
+ *     tags: [Ticket Classes]
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+ *     responses:
+ *       200:
+ *         description: Ticket class list
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/TicketClass' } }
+ *       400: { description: Invalid day }
+ */
+router.get("/ticket-classes", (req, res, next) => {
+	if (req.query.day !== undefined) {
+		return getTicketClassesForDay(req, res, next);
+	}
+	return getAllTicketClasses(req, res, next);
+});
+
+/**
+ * @openapi
+ * /api/bookings:
+ *   get:
+ *     summary: Get all bookings (admin only)
+ *     tags: [Bookings]
+ *     responses:
+ *       200:
+ *         description: Booking list
+ *         content:
+ *           application/json:
+ *             schema: { type: array, items: { $ref: '#/components/schemas/Booking' } }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin role required }
+ */
+router.get("/bookings", requireApiRole("admin"), getAllBookings);
 
 export default router;

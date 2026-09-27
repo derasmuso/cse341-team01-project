@@ -209,6 +209,32 @@
         totalAmount.textContent = `¥${total.toLocaleString()}`;
     };
 
+    const updateTicketAvailability = async (day) => {
+        try {
+            const response = await fetch(`/api/ticket-classes?day=${encodeURIComponent(day)}`);
+            if (!response.ok) throw new Error('Ticket classes unavailable');
+            const availableClasses = await response.json();
+            const availableIds = new Set(availableClasses.map((ticketClass) => ticketClass.class));
+
+            ticketRadios.forEach((radio) => {
+                const unavailable = !availableIds.has(radio.value);
+                radio.disabled = unavailable;
+                radio.closest('.ticket-card').classList.toggle('unavailable', unavailable);
+            });
+
+            const selected = document.querySelector('input[name="ticketClass"]:checked');
+            if (selected?.disabled) {
+                const firstAvailable = [...ticketRadios].find((radio) => !radio.disabled);
+                if (firstAvailable) {
+                    firstAvailable.checked = true;
+                    firstAvailable.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        } catch (error) {
+            document.querySelector('.ticket-selection').setAttribute('data-availability-error', 'true');
+        }
+    };
+
     const updatePassengerNumbers = () => {
         const cards = document.querySelectorAll('.passenger-card');
         cards.forEach((card, index) => {
@@ -402,6 +428,7 @@
             label.classList.add('selected');
             label.querySelector('input').checked = true;
             label.querySelector('input').setAttribute('checked', true);
+            updateTicketAvailability(label.querySelector('input').value);
         });
     });
 
@@ -451,6 +478,7 @@
         ticketPrice = parseInt(selectedRadio.dataset.price);
     }
     updateSummary();
+    updateTicketAvailability(document.querySelector('input[name="selectedDay"]:checked')?.value);
 </script>
 
 <%- include('../partials/footer') %>
