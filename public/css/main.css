@@ -10,6 +10,7 @@
 @import 'utilities/trains.css' layer(utilities);
 @import 'utilities/trip-detail.css' layer(utilities);
 @import 'utilities/trips.css' layer(utilities);
+@import 'utilities/auth.css' layer(utilities);
 
 @import 'components/content-grid.css' layer(components);
 @import 'components/columns-grid.css' layer(components);

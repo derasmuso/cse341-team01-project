@@ -10,7 +10,7 @@ const hookRegionSorter = () => {
             } else {
                 url.searchParams.delete('region');
             }
-            
+
             window.location.href = url.toString();
         });
     }
@@ -28,7 +28,7 @@ const hookSeasonSorter = () => {
             } else {
                 url.searchParams.delete('season');
             }
-            
+
             window.location.href = url.toString();
         });
     }
@@ -88,8 +88,93 @@ const hookTrainsCatalog = async () => {
     }
 };
 
+const hookTripsList = async () => {
+    const listEl = document.getElementById('trips-list');
+    const templateEl = document.getElementById('trip-card-template');
+    const loadingEl = document.getElementById('trips-loading');
+    const errorEl = document.getElementById('trips-error');
+    const regionSelect = document.getElementById('region-filter');
+    const seasonSelect = document.getElementById('season-filter');
+
+    if (!listEl || !templateEl) {
+        return;
+    }
+
+    const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+    const fillSelect = (select, values) => {
+        [...new Set(values)].forEach((value) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = capitalize(value);
+            select.appendChild(option);
+        });
+    };
+
+    try {
+        const response = await fetch('/api/trips');
+        if (!response.ok) {
+            throw new Error(`Failed to load trips (${response.status})`);
+        }
+
+        const trips = await response.json();
+
+        fillSelect(regionSelect, trips.map((trip) => trip.region));
+        fillSelect(seasonSelect, trips.map((trip) => trip.bestSeason));
+
+        const params = new URLSearchParams(window.location.search);
+        const region = params.get('region') || 'all';
+        const season = params.get('season') || 'all';
+        regionSelect.value = region;
+        seasonSelect.value = season;
+
+        const visibleTrips = trips.filter((trip) =>
+            (region === 'all' || trip.region === region) &&
+            (season === 'all' || trip.bestSeason === season)
+        );
+
+        const fragment = document.createDocumentFragment();
+
+        visibleTrips.forEach((trip) => {
+            const card = templateEl.content.cloneNode(true);
+
+            card.querySelector('.route-card').classList.add(trip.region);
+            card.querySelector('[data-field="name"]').textContent = trip.name;
+            card.querySelector('[data-field="region"]').textContent = trip.region;
+            card.querySelector('[data-field="start"]').textContent = trip.startStation;
+            card.querySelector('[data-field="end"]').textContent = trip.endStation;
+            card.querySelector('[data-field="duration"]').textContent = trip.duration;
+            card.querySelector('[data-field="distance"]').textContent = `${trip.distance}km`;
+            card.querySelector('[data-field="description"]').textContent = trip.description;
+            card.querySelector('[data-field="link"]').href = `/trips/${trip.id}`;
+
+            const seasonEl = card.querySelector('[data-field="season"]');
+            seasonEl.classList.add(`season-${trip.bestSeason}`);
+            seasonEl.textContent = `Best in ${trip.bestSeason}`;
+
+            const highlightsEl = card.querySelector('[data-field="highlights"]');
+            trip.highlights.forEach((highlight) => {
+                const tag = document.createElement('span');
+                tag.className = 'highlight-tag';
+                tag.textContent = highlight;
+                highlightsEl.appendChild(tag);
+            });
+
+            fragment.appendChild(card);
+        });
+
+        listEl.replaceChildren(fragment);
+        loadingEl.hidden = true;
+    } catch (error) {
+        loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = 'Unable to load trips right now. Please try again in a moment.';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     hookRegionSorter();
     hookSeasonSorter();
     hookTrainsCatalog();
+    hookTripsList();
 });
