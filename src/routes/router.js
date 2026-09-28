@@ -4,7 +4,6 @@ import { homePage, aboutPage, testErrorPage } from './index.js';
 
 import { trainsApi, trainsPage } from './trains.js';
 
-// import railTripsRouter from './trips.js';
 import ejsRoutes from './ejs-routes.js';
 
 import apiRoutes from './api-routes.js';
@@ -35,11 +34,8 @@ router.get('/trains', trainsPage);
 // Trains API
 router.get('/api/trains', trainsApi);
 
-// Rail trips
-// router.use('/trips', railTripsRouter);
-
 // EJS routes
-router.use('/', ejsRoutes);
+router.use('/trips', ejsRoutes);
 
 // Test 500 error page
 router.get('/500', testErrorPage);
