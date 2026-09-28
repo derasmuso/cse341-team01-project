@@ -30,4 +30,9 @@ router.get('/', listTripsPage);
 // Trip details page
 router.get('/:tripId', tripDetailsPage);
 
+
+
+
+
+
 export default router;
