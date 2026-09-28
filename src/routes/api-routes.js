@@ -7,40 +7,12 @@ import {
     getTicketClassesForDay
 } from '../controllers/ticket-classes.js';
 
-import { getAllTrips, getTripById } from "../controllers/trips.js";
-
+import {
+    getAllTrips,
+    getTripById
+} from '../controllers/trips.js';
 
 const router = Router();
-
-
-/**
- * @openapi
- * /api/ticket-classes:
- *   get:
- *     summary: Get ticket classes
- *     description: Returns all ticket classes, or only the ticket classes available on the requested day when the day query parameter is provided.
- *     tags:
- *       - Ticket Classes
- *     parameters:
- *       - in: query
- *         name: day
- *         required: false
- *         description: Day of the week used to filter available ticket classes.
- *         schema:
- *           type: string
- *           enum:
- *             - monday
- *             - tuesday
- *             - wednesday
- *             - thursday
- *             - friday
- *             - saturday
- *             - sunday
- *         example: monday
- *     responses:
- *       200:
- *         description: Ticket classes retrieved successfully.
-
 
 /**
  * @openapi
@@ -103,20 +75,6 @@ const router = Router();
  * /api/trips:
  *   get:
  *     summary: Get all trips
- *     tags: [Trips]
- *     responses:
- *       200:
- *         description: A list of trips
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
-/**
- * @openapi
- * /api/trips:
- *   get:
- *     summary: Get all trips
  *     tags:
  *       - Trips
  *     responses:
@@ -125,7 +83,9 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Trip'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Trip'
  *       500:
  *         description: Failed to fetch trips
  *         content:
@@ -133,14 +93,15 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/trips", getAllTrips);
+router.get('/trips', getAllTrips);
 
 /**
  * @openapi
  * /api/trips/{id}:
  *   get:
  *     summary: Get one trip by id
- *     tags: [Trips]
+ *     tags:
+ *       - Trips
  *     parameters:
  *       - in: path
  *         name: id
@@ -169,7 +130,7 @@ router.get("/trips", getAllTrips);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/trips/:id", getTripById);
+router.get('/trips/:id', getTripById);
 
 /**
  * @openapi
@@ -220,9 +181,9 @@ router.get("/trips/:id", getTripById);
  *                     items:
  *                       type: string
  *                     example:
- *                       - Comfortable Seats
- *                       - Large Windows
- *                       - Complimentary Tea
+ *                       - Comfortable seats
+ *                       - Large windows
+ *                       - Complimentary tea
  *                   description:
  *                     type: string
  *                     example: Comfortable and affordable railway travel.
@@ -241,7 +202,6 @@ router.get("/trips/:id", getTripById);
  *                     example:
  *                       - monday
  *                       - tuesday
- *                       - wednesday
  *       400:
  *         description: Invalid day query parameter.
  *         content:
@@ -271,7 +231,4 @@ router.get('/ticket-classes', (req, res) => {
     return getAllTicketClasses(req, res);
 });
 
-
-
 export default router;
-    
