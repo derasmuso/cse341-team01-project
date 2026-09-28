@@ -3,6 +3,7 @@
         "class": "standard",
         "name": "Standard Class",
         "pricePerKm": 80,
+        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
         "amenities": [
             "Comfortable seats",
             "Large windows",
@@ -14,6 +15,7 @@
         "class": "premium",
         "name": "Premium Class",
         "pricePerKm": 150,
+        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday"],
         "amenities": [
             "Panoramic windows",
             "Meal service",
@@ -26,6 +28,7 @@
         "class": "first",
         "name": "First Class",
         "pricePerKm": 250,
+        "availableDays": ["saturday", "sunday"],
         "amenities": [
             "Private compartment",
             "Multi-course meal",

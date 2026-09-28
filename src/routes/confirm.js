@@ -1,12 +1,15 @@
-import { getDb } from '../db/connect.js';
+import { getBookingById } from '../models/bookings.js';
 
 export default async (req, res) => {
-    const { confirmationId } = req.params;
+    const { bookingId } = req.params;
 
-    const confirmation = await getDb().collection('confirmations').findOne({ id: confirmationId });
+    const booking = await getBookingById(bookingId);
+    if (!booking) {
+        return res.status(404).render('errors/404', { title: 'Booking Not Found' });
+    }
 
-    res.render('trips/confirm', {
+    return res.render('trips/confirm', {
         title: 'Trip Confirmation',
-        confirmation
+        booking
     });
 };

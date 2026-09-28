@@ -51,10 +51,14 @@
                 <div class="station">
                     <span class="station-label">Start</span>
                     <span class="station-name"><%= details.startStation.charAt(0).toUpperCase() + details.startStation.slice(1) %></span>
+                    <button type="button" class="station-detail-toggle" data-station-id="<%= details.startStation %>" aria-expanded="false">Station info</button>
+                    <div class="station-detail" hidden aria-live="polite"></div>
                 </div>
                 <div class="station">
                     <span class="station-label">End</span>
                     <span class="station-name"><%= details.endStation.charAt(0).toUpperCase() + details.endStation.slice(1) %></span>
+                    <button type="button" class="station-detail-toggle" data-station-id="<%= details.endStation %>" aria-expanded="false">Station info</button>
+                    <div class="station-detail" hidden aria-live="polite"></div>
                 </div>
             </div>
         </div>
@@ -68,34 +72,38 @@
             </div>
         </div>
 
-        <% if (details.schedules && details.schedules.length > 0) { %>
-        <div class="route-schedules">
+        <section class="route-schedules" data-trip-schedules data-trip-id="<%= details.id %>">
             <h2>Available Schedules</h2>
-            <div class="schedules-grid">
-                <% details.schedules.forEach(function(schedule) { %>
-                <div class="schedule-card">
-                    <div class="schedule-times">
-                        <div class="time-block">
-                            <span class="time-label">Departs</span>
-                            <span class="time-value"><%= schedule.departureTime %></span>
-                        </div>
-                        <span class="time-arrow">→</span>
-                        <div class="time-block">
-                            <span class="time-label">Arrives</span>
-                            <span class="time-value"><%= schedule.arrivalTime %></span>
-                        </div>
-                    </div>
-                    <div class="schedule-days">
-                        <% schedule.daysOfWeek.forEach(function(day) { %>
-                        <span class="day-badge"><%= day.substring(0, 3) %></span>
-                        <% }); %>
-                    </div>
-                    <a href="/trips/booking/<%= schedule.id %>" class="book-btn">Book Now</a>
-                </div>
+            <label for="schedule-month">Filter by month</label>
+            <select id="schedule-month">
+                <option value="all">All operating months</option>
+                <% details.operatingMonths.forEach(function(month) { %>
+                <option value="<%= month %>"><%= new Date(2000, month - 1).toLocaleString('en', { month: 'long' }) %></option>
                 <% }); %>
+            </select>
+            <p id="schedules-loading" class="trips-state">Loading schedules...</p>
+            <p id="schedules-error" class="trips-state trips-error" hidden></p>
+            <p id="schedules-empty" class="trips-state" hidden>No schedules are available for this month.</p>
+            <div class="schedules-grid" id="schedules-list"></div>
+        </section>
+
+        <template id="schedule-card-template">
+            <div class="schedule-card">
+                <div class="schedule-times">
+                    <div class="time-block">
+                        <span class="time-label">Departs</span>
+                        <span class="time-value" data-field="departure"></span>
+                    </div>
+                    <span class="time-arrow">→</span>
+                    <div class="time-block">
+                        <span class="time-label">Arrives</span>
+                        <span class="time-value" data-field="arrival"></span>
+                    </div>
+                </div>
+                <div class="schedule-days" data-field="days"></div>
+                <a class="book-btn" data-field="link">Book Now</a>
             </div>
-        </div>
-        <% } %>
+        </template>
     </div>
 </article>
 

@@ -5,6 +5,8 @@ import { Router } from 'express';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import authRoutes from './auth-routes.js';
 import adminRoutes from './admin-routes.js';
+import { bookingsAdminPage } from '../controllers/bookings.js';
+import { requirePageRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -30,6 +32,8 @@ router.get('/api/trains', trainsApi);
 router.use('/trips', ejsRoutes);
 
 router.use('/api', apiRoutes);
+
+router.get('/bookings-admin', requirePageRole('admin'), bookingsAdminPage);
 
 // Test 500 error page
 router.get('/500', testErrorPage);
