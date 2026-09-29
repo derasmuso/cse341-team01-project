@@ -7,3 +7,4 @@ export async function getTripById(id) {
 export async function getAllTrips() {
     return Trip.find({}).lean();
 }
+
