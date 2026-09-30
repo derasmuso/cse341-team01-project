@@ -1,20 +1,31 @@
-import { getDb } from '../db/connect.js';
 import { generateConfirmationCode } from '../includes/helpers.js';
-import { createBooking, getAllBookings as findAllBookings } from '../models/bookings.js';
 
-/**
- * Renders the booking page for a given schedule.
- */
-export async function bookingPage(req, res) {
+import { getScheduleById } from '../models/schedules.js';
+import { getTripById } from '../models/trips.js';
+import {
+    getAllTicketClasses
+} from '../models/ticket-classes.js';
+import {
+    createBooking,
+    getAllBookings as findAllBookings
+} from '../models/bookings.js';
+
+const bookingPage = async (req, res) => {
     const { scheduleId } = req.params;
 
-    const db = getDb();
-    const schedule = await db.collection('schedules').findOne({ id: Number(scheduleId) });
-    const trip = await db.collection('trips').findOne({ id: schedule.tripId });
-    const ticketClasses = await db.collection('ticketClasses').find({}).toArray();
+    const schedule = await getScheduleById(scheduleId);
+    console.log('scheduleId:', scheduleId);
+    console.log('schedule:', schedule);
+
+    const trip = await getTripById(schedule.tripId);
+    console.log('trip:', trip);
+    console.log('tripId:', schedule.tripId);
+
+    const ticketClasses = await getAllTicketClasses();
+
     const ticketOptions = ticketClasses.map((ticketClass) => ({
         class: ticketClass.class,
-        name: ticketClass.name,
+        name: ticketClass.class,
         price: trip.distance * ticketClass.pricePerKm,
         amenities: ticketClass.amenities,
         description: ticketClass.description
@@ -25,13 +36,9 @@ export async function bookingPage(req, res) {
         schedule,
         ticketOptions
     });
-}
+};
 
-/**
- * Handles the booking form submission by creating a new booking via the
- * booking model, then redirecting to the confirmation page.
- */
-export async function processBookingRequest(req, res) {
+const processBookingRequest = async (req, res) => {
     const booking = {
         id: generateConfirmationCode(),
         createdAt: new Date().toISOString(),
@@ -41,12 +48,12 @@ export async function processBookingRequest(req, res) {
     await createBooking(booking);
 
     res.redirect(`/trips/confirmation/${booking.id}`);
-}
+};
 
 /**
  * API controller: returns all bookings as JSON.
  */
-export async function getAllBookings(req, res) {
+const getAllBookings = async (req, res) => {
     try {
         const bookings = await findAllBookings();
         return res.status(200).json({ bookings });
@@ -54,12 +61,14 @@ export async function getAllBookings(req, res) {
         console.error('Error fetching bookings:', error);
         return res.status(500).json({ error: 'Failed to fetch bookings' });
     }
-}
+};
 
 /**
  * Renders the bookings admin page, which populates its list of bookings
  * client-side by calling the bookings API.
  */
-export function bookingsAdminPage(req, res) {
+const bookingsAdminPage = (req, res) => {
     res.render('bookings', { title: 'Bookings Admin' });
-}
+};
+
+export { bookingPage, processBookingRequest, getAllBookings, bookingsAdminPage };
