@@ -6,8 +6,9 @@ import {
     getAllTicketClasses
 } from '../models/ticket-classes.js';
 import {
-    createConfirmation
-} from '../models/confirmations.js';
+    createBooking,
+    getAllBookings as findAllBookings
+} from '../models/bookings.js';
 
 const bookingPage = async (req, res) => {
     const { scheduleId } = req.params;
@@ -38,15 +39,36 @@ const bookingPage = async (req, res) => {
 };
 
 const processBookingRequest = async (req, res) => {
-    const confirmation = {
+    const booking = {
         id: generateConfirmationCode(),
         createdAt: new Date().toISOString(),
         ...req.body
     };
 
-    await createConfirmation(confirmation);
+    await createBooking(booking);
 
-    res.redirect(`/trips/confirmation/${confirmation.id}`);
+    res.redirect(`/trips/confirmation/${booking.id}`);
 };
 
-export { bookingPage, processBookingRequest };
+/**
+ * API controller: returns all bookings as JSON.
+ */
+const getAllBookings = async (req, res) => {
+    try {
+        const bookings = await findAllBookings();
+        return res.status(200).json({ bookings });
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        return res.status(500).json({ error: 'Failed to fetch bookings' });
+    }
+};
+
+/**
+ * Renders the bookings admin page, which populates its list of bookings
+ * client-side by calling the bookings API.
+ */
+const bookingsAdminPage = (req, res) => {
+    res.render('bookings', { title: 'Bookings Admin' });
+};
+
+export { bookingPage, processBookingRequest, getAllBookings, bookingsAdminPage };

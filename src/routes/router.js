@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { homePage, aboutPage, testErrorPage } from './index.js';
+import { bookingsAdminPage } from '../controllers/bookings.js';
 
 import { trainsApi, trainsPage } from './trains.js';
 
@@ -33,6 +34,9 @@ router.get('/trains', trainsPage);
 
 // Trains API
 router.get('/api/trains', trainsApi);
+
+// Bookings admin page
+router.get('/bookings-admin', bookingsAdminPage);
 
 // EJS routes
 router.use('/trips', ejsRoutes);
