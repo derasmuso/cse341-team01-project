@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { homePage, aboutPage, testErrorPage } from './index.js';
-import { bookingsAdminPage } from '../controllers/booking.js';
+import { bookingsAdminPage } from '../controllers/bookings.js';
 
 import { trainsApi, trainsPage } from './trains.js';
 

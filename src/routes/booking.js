@@ -1,7 +1,7 @@
 // src/routes/book.js
 
 import { Router } from 'express';
-import { bookingPage } from '../controllers/booking.js';
+import { bookingPage } from '../controllers/bookings.js';
 
 const router = Router();
 

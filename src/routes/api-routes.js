@@ -12,7 +12,7 @@ import {
     getTripById
 } from '../controllers/trips.js';
 
-import { getAllBookings } from '../controllers/booking.js';
+import { getAllBookings } from '../controllers/bookings.js';
 
 const router = Router();
 
