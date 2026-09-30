@@ -9,8 +9,12 @@ import {
 
 import {
     getAllTrips,
-    getTripById
+    getTripById,
+    updateTrip,
+    deleteTrip
 } from '../controllers/trips.js';
+
+import { requireApiRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -133,6 +137,18 @@ router.get('/trips', getAllTrips);
 router.get('/trips/:id', getTripById);
 
 /**
+ * Update a trip
+ * Admin only
+ */
+router.put('/trips/:id', requireApiRole('admin'), updateTrip);
+
+/**
+ * Delete a trip
+ * Admin only
+ */
+router.delete('/trips/:id', requireApiRole('admin'), deleteTrip);
+
+/**
  * @openapi
  * /api/ticket-classes:
  *   get:
@@ -224,7 +240,7 @@ router.get('/trips/:id', getTripById);
  *                   example: Internal server error
  */
 router.get('/ticket-classes', (req, res) => {
-    if (req.query.day !== undefined) {
+    if (req.query.day) {
         return getTicketClassesForDay(req, res);
     }
 
