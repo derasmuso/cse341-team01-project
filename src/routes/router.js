@@ -1,3 +1,5 @@
+// src/routes/router.js
+
 import { Router } from 'express';
 
 import { homePage, aboutPage, testErrorPage } from './index.js';
@@ -9,6 +11,7 @@ import ejsRoutes from './ejs-routes.js';
 import apiRoutes from './api-routes.js';
 
 import authRoutes from './auth-routes.js';
+import dashboardRoutes from './dashboard-routes.js';
 import adminRoutes from './admin-routes.js';
 
 const router = Router();
@@ -21,6 +24,9 @@ router.get('/', homePage);
 
 // Authentication and authorization routes
 router.use('/', authRoutes);
+
+// Dashboard and profile routes
+router.use('/', dashboardRoutes);
 
 // Admin routes
 router.use('/admin', adminRoutes);

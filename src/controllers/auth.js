@@ -1,3 +1,5 @@
+// src/controllers/auth.js
+
 import { createUser, findUserByEmail, verifyPassword } from '../models/users.js';
 
 // For Registration
@@ -71,7 +73,11 @@ export async function login(req, res, next) {
             role: user.role.name,
         };
 
-        return res.redirect('/admin/dashboard');
+        if (req.session.user.role === 'admin') {
+            return res.redirect('/admin/dashboard');
+        }
+        return res.redirect('/dashboard');
+        
     } catch (error) {
         return next(error);
     }

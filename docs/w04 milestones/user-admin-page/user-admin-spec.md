@@ -1,131 +1,163 @@
-Feature Set 3 — Protected User Admin Page
-# Issue 1 — Create protected user admin page
+# Feature Set 3 — User Management
+## Issue 1 — Implement Role-Based Dashboards and User Profile
 
-Goal: Create the user administration page and enforce authentication.
+### Goal
 
-Tasks
+Create separate dashboards for regular users and administrators, along with a protected profile page for authenticated users.
 
-Create the /admin/users page and EJS view.
-Protect the page with the existing authentication middleware.
-Redirect unauthenticated users to /login.
-Add the user list container and HTML templates for:
-user cards
-user edit forms
-Add the page to the admin dashboard.
+### Requirements
+1. Create/protect GET /dashboard.
+Requires authentication.
+Regular users are directed to the regular user dashboard.
+Admin users are directed to /admin/dashboard.
 
-Acceptance Criteria
+2. Create/protect the regular user dashboard.
+Accessible only to authenticated non-admin users.
+Display regular user features.
 
-Unauthenticated users are redirected to /login.
-Authenticated users can access /admin/users.
-The page contains the required user list and templates.
-The admin dashboard links to /admin/users.
+3. Keep/create the admin dashboard at GET /admin/dashboard.
+Accessible only to authenticated administrators.
+Display administrative features.
 
-# Issue 2 — Implement user management API
+4. Create/protect GET /profile.
+Accessible to authenticated users.
+Display only the authenticated user's information.
+Do not use a user ID supplied in the URL to determine whose profile is displayed.
+Add appropriate navigation links.
+Regular users can access their dashboard and profile.
+Administrators can access their dashboard, profile, and administration features.
+Admin dashboard includes a link to /admin/users.
 
-Goal: Provide the API operations required by the user admin page.
+### Acceptance criteria
+1. An unauthenticated user accessing /dashboard or /profile is redirected to /login.
 
-Tasks
+2. A regular user can access the regular dashboard and their own profile.
 
-Add model functions for retrieving, updating, and deleting users.
-Implement GET /api/users.
-Admins receive all users.
-Non-admin users receive only their own information.
-Implement PUT /api/users/:id.
-Implement DELETE /api/users/:id.
-Return safe user data without passwordHash.
-Handle invalid IDs, missing users, validation errors, and server errors appropriately.
+3. An admin can access the admin dashboard and their own profile.
 
-Acceptance Criteria
+4. A regular user cannot access /admin/dashboard.
 
-GET /api/users returns users according to the authenticated user's role.
-Authorized users can update their own information.
-Admins can update any user.
-Authorized users can delete their own account.
-Admins can delete any user.
-Database logic remains in the model.
+5. A regular user cannot access /admin/users.
 
-# Issue 3 — Secure user management operations
+6. An admin can access /admin/dashboard and /admin/users.
 
-Goal: Ensure users cannot use the API to access or modify unauthorized accounts.
+7. A user can only view their own profile.
 
-Tasks
 
-Apply authentication to the user API.
-Allow users to update/delete only their own account.
-Allow admins to update/delete any account.
-Return:
-401 for unauthenticated requests.
-403 for authenticated users without permission.
-400 for invalid input/IDs.
-404 when the requested user does not exist.
-Only allow approved fields to be updated.
-Prevent non-admin users from changing protected fields such as their role, if applicable.
-Never expose password hashes.
+## Issue 2 — Implement User Management API
+Goal
 
-Acceptance Criteria
+Create the API operations required to retrieve, update, and delete users.
 
-Not authenticated → 401
-User → own account → allowed
-User → another account → 403
-Admin → any account → allowed
+Requirements
+Create the necessary user model functions.
+Create the necessary controller functions.
+Implement:
+GET /api/users
+PUT /api/users/:id
+DELETE /api/users/:id
+GET /api/users:
+Admin → return users they are authorized to manage.
+Regular user → return only their own information.
+Never expose passwordHash.
+Validate IDs and request data.
+Return appropriate HTTP status codes.
+Acceptance criteria
+Valid requests return the expected data.
+Sensitive fields are excluded.
+Invalid data returns 400.
+A missing user returns 404.
+Server errors return 500.
+Issue 3 — Secure User Management Operations
+Goal
 
-Authorization must be enforced on the server and must not depend on client-side JavaScript.
+Ensure users can only perform operations they are authorized to perform.
 
-# Issue 4 — Implement dynamic user management UI
+Requirements
+Require authentication for all user-management API operations.
+A regular user can update their own information.
+A regular user can delete their own account.
+A regular user cannot update another user's information.
+A regular user cannot delete another user's account.
+An admin can update any user.
+An admin can delete any user.
+Prevent regular users from changing protected fields such as role.
+Enforce authorization on the server, regardless of what the UI displays.
+Acceptance criteria
+Unauthenticated requests → 401.
+Authenticated but unauthorized requests → 403.
+Regular users cannot elevate their privileges.
+Admins can manage other users.
+Users can manage their own permitted information.
+Issue 4 — Implement Dynamic User Management UI
+Goal
 
-Goal: Build the client-side interaction for viewing, editing, and deleting users without page refreshes.
+Allow administrators to manage users without refreshing the page.
 
-Tasks
-
-Load users with GET /api/users.
-Store users in a JavaScript Map.
-Render users using the HTML templates.
-Use textContent for API-provided values.
-Use event delegation for Edit, Cancel, and Delete actions.
-Replace the selected user card with the edit form.
-Send PUT /api/users/:id when saving.
-Send DELETE /api/users/:id when deleting.
-Update the local Map from successful API responses.
-Re-render the list after updates or deletions.
-Display success and error messages.
+Requirements
+Create the /admin/users page.
+Load users dynamically through GET /api/users.
+Render users using HTML templates.
+Maintain loaded users in a Map keyed by user ID.
+Implement edit functionality.
+Implement cancel functionality.
+Implement delete functionality.
+Use PUT /api/users/:id for updates.
+Use DELETE /api/users/:id for deletion.
+Update the local Map and DOM after successful operations.
 Do not use window.location.reload().
+Safely render user-provided values using textContent.
+Acceptance criteria
+Administrators see the appropriate users after loading the page.
+Users can be edited without a page refresh.
+Users can be deleted without a page refresh.
+Canceling an edit restores the user card.
+The UI reflects successful API operations immediately.
+Issue 5 — Test Feature Set 3
+Goal
 
-Acceptance Criteria
+Verify authentication, authorization, dashboards, profiles, APIs, and dynamic user management.
 
-Admins see all users returned by the API.
-Non-admin users see only themselves.
-Edit affects only the selected card.
-Cancel makes no API request.
-Successful updates appear immediately.
-Successful deletions remove the user immediately.
-No page refresh is required.
-# Issue 5 — Test Feature Set 3
+Requirements
 
-Goal: Verify authentication, authorization, API operations, and client-side behavior.
+Test:
 
-Tasks
+Unauthenticated dashboard access.
+Regular user dashboard access.
+Admin dashboard access.
+Regular user access to /admin/dashboard.
+Regular user access to /admin/users.
+User profile access.
+Profile isolation.
+GET /api/users.
+User update.
+User deletion.
+Unauthorized update/delete attempts.
+Admin update/delete operations.
+Invalid IDs and invalid data.
+Client-side update/delete without page reload.
+Acceptance criteria
 
-Test unauthenticated page access.
-Test admin and non-admin user visibility.
-Test authorized and unauthorized updates.
-Test authorized and unauthorized deletions.
-Test invalid IDs and missing users.
-Test dynamic edit, save, cancel, and delete interactions.
-Verify the list updates without a page refresh.
+The complete Feature Set 3 behavior works according to the requirements above, with authentication and authorization enforced both at the page and API levels.
 
-Acceptance Criteria
+Final architecture
+                         Authentication
+                               │
+                ┌──────────────┴──────────────┐
+                │                             │
+             Customer                        Admin
+                │                             │
+                ▼                             ▼
+          /dashboard                  /admin/dashboard
+                │                             │
+                └──────────────┬──────────────┘
+                               │
+                            /profile
+                         Own profile only
 
-Authentication and authorization rules are enforced.
-CRUD operations behave according to the specification.
-The UI reflects successful API changes immediately.
-No full-page reload is required after update/delete.
-# Final issue structure
+                               │
+                               ▼
+                         /admin/users
+                            Admin only
 
-##	Issue	Main responsibility
-1	Create protected user admin page	Page, authentication, templates, dashboard link
-2	Implement user management API	Model, controller, routes, CRUD
-3	Secure user management operations	Ownership/admin authorization
-4	Implement dynamic user management UI	Fetch, templates, edit, update, delete
-5	Test Feature Set 3	End-to-end verification
-
-This is the structure I'd use for the team's GitHub board: 5 issues, with each issue representing a substantial, independently understandable piece of the feature set.
+This version keeps Issue 1 focused on pages and role-based access, Issues 2–3 on the API/security, Issue 4 on the client-side UI, and Issue 5 on testing. It also fits your existing requirePageLogin and requirePageRole('admin') middleware without requiring us to redesign your authentication system.
