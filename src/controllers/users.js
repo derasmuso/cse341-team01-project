@@ -47,6 +47,13 @@ export async function updateUserById(req, res, next) {
         });
     }
 
+    // Regular users can only update their own account.
+    if (req.user.role !== "admin" && req.user.id !== id) {
+        return res.status(403).json({
+            message: "You are not authorized to update this user"
+        });
+    }
+
     const fields = Object.keys(req.body);
 
     if (fields.length === 0) {
@@ -58,6 +65,13 @@ export async function updateUserById(req, res, next) {
     if (fields.some((field) => !allowedUpdateFields.includes(field))) {
         return res.status(400).json({
             message: "Invalid user data"
+        });
+    }
+
+    // Regular users cannot change their role.
+    if (req.user.role !== "admin" && fields.includes("role")) {
+        return res.status(403).json({
+            message: "You are not authorized to change the user role"
         });
     }
 
@@ -150,6 +164,13 @@ export async function deleteUserById(req, res, next) {
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).json({
             message: "Invalid user ID"
+        });
+    }
+
+    // Regular users can only delete their own account.
+    if (req.user.role !== "admin" && req.user.id !== id) {
+        return res.status(403).json({
+            message: "You are not authorized to delete this user"
         });
     }
 

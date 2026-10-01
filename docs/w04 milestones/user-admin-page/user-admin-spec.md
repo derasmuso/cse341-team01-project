@@ -45,29 +45,32 @@ Admin dashboard includes a link to /admin/users.
 
 
 ## Issue 2 — Implement User Management API
-Goal
+
+### Goal
 
 Create the API operations required to retrieve, update, and delete users.
 
-Requirements
-Create the necessary user model functions.
-Create the necessary controller functions.
-Implement:
-GET /api/users
-PUT /api/users/:id
-DELETE /api/users/:id
-GET /api/users:
-Admin → return users they are authorized to manage.
-Regular user → return only their own information.
-Never expose passwordHash.
-Validate IDs and request data.
-Return appropriate HTTP status codes.
-Acceptance criteria
-Valid requests return the expected data.
-Sensitive fields are excluded.
-Invalid data returns 400.
-A missing user returns 404.
-Server errors return 500.
+### Requirements
+1. Create the necessary user model functions.
+2. Create the necessary controller functions.
+3. Implement:
+   - GET /api/users
+   - PUT /api/users/:id
+   - DELETE /api/users/:id
+
+#### GET /api/users:
+- Admin → return users they are authorized to manage.
+- Regular user → return only their own information.
+- Never expose passwordHash.
+- Validate IDs and request data.
+- Return appropriate HTTP status codes.
+
+### Acceptance criteria
+1. Valid requests return the expected data.
+2. Sensitive fields are excluded.
+3. Invalid data returns 400.
+4. A missing user returns 404.
+5. Server errors return 500.
 
 ## Issue 3 — Secure User Management Operations
 Goal
@@ -90,7 +93,9 @@ Authenticated but unauthorized requests → 403.
 Regular users cannot elevate their privileges.
 Admins can manage other users.
 Users can manage their own permitted information.
-Issue 4 — Implement Dynamic User Management UI
+
+
+## Issue 4 — Implement Dynamic User Management UI
 Goal
 
 Allow administrators to manage users without refreshing the page.
@@ -114,7 +119,9 @@ Users can be edited without a page refresh.
 Users can be deleted without a page refresh.
 Canceling an edit restores the user card.
 The UI reflects successful API operations immediately.
-Issue 5 — Test Feature Set 3
+
+
+## Issue 5 — Test Feature Set 3
 Goal
 
 Verify authentication, authorization, dashboards, profiles, APIs, and dynamic user management.
