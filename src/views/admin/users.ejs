@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+
+    <h1>Manage Users</h1>
+
+    <p id="users-message"></p>
+
+    <div id="users-container">
+        <p>Loading users...</p>
+    </div>
+
+    <template id="user-card-template">
+        <article class="user-card">
+            <div class="user-card-view">
+                <h2 class="user-name"></h2>
+
+                <p>
+                    <strong>Username:</strong>
+                    <span class="user-username"></span>
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    <span class="user-email"></span>
+                </p>
+
+                <p>
+                    <strong>Role:</strong>
+                    <span class="user-role"></span>
+                </p>
+
+                <div class="user-actions">
+                    <button type="button" class="edit-user-button">
+                        Edit
+                    </button>
+
+                    <button type="button" class="delete-user-button">
+                        Delete
+                    </button>
+                </div>
+            </div>
+
+            <form class="user-edit-form" hidden>
+                <label>
+                    Display Name
+                    <input type="text" name="displayName" class="edit-display-name" required>
+                </label>
+
+                <label>
+                    Username
+                    <input type="text" name="username" class="edit-username" readonly aria-disabled="true" aria-readonly="true">
+                </label>
+
+                <label>
+                    Email
+                    <input type="email" name="email" class="edit-email" required>
+                </label>
+
+                <label>
+                    Role
+                    <select name="role" class="edit-role">
+                        <option value="1">Customer</option>
+                        <option value="2">Admin</option>
+                    </select>
+                </label>
+
+                <div class="user-actions">
+                    <button type="submit">
+                        Save
+                    </button>
+
+                    <button type="button" class="cancel-edit-button">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </article>
+    </template>
+
+    <script type="module" src="/js/admin-users.js"></script>
+
+    <%- include('../partials/footer') %>

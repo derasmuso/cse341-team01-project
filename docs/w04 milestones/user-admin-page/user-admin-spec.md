@@ -73,7 +73,8 @@ Create the API operations required to retrieve, update, and delete users.
 5. Server errors return 500.
 
 ## Issue 3 — Secure User Management Operations
-Goal
+
+### Goal
 
 Ensure users can only perform operations they are authorized to perform.
 

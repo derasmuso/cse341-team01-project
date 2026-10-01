@@ -11,10 +11,11 @@ import {
 
 const allowedUpdateFields = [
     "displayName",
-    "username",
     "email",
     "role"
 ];
+
+const validRoles = ["1", "2"];
 
 export async function getUsers(req, res, next) {
     try {
@@ -106,7 +107,7 @@ export async function updateUserById(req, res, next) {
 
     if (
         role !== undefined &&
-        (typeof role !== "string" || !role.trim())
+        !validRoles.includes(role)
     ) {
         return res.status(400).json({
             message: "Invalid role"
