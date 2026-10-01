@@ -31,3 +31,36 @@ export async function findUserByEmail(email) {
 export async function verifyPassword(password, passwordHash) {
     return bcrypt.compare(password, passwordHash);
 }
+
+// User management
+
+export async function getAllUsers() {
+    return User.find()
+        .select("-passwordHash")
+        .lean();
+}
+
+export async function getUserById(id) {
+    return User.findById(id)
+        .select("-passwordHash")
+        .lean();
+}
+
+export async function updateUser(id, data) {
+    return User.findByIdAndUpdate(
+        id,
+        data,
+        {
+            new: true,
+            runValidators: true
+        }
+    )
+        .select("-passwordHash")
+        .lean();
+}
+
+export async function deleteUser(id) {
+    return User.findByIdAndDelete(id)
+        .select("-passwordHash")
+        .lean();
+}

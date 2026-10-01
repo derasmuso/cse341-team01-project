@@ -12,7 +12,17 @@ import {
     getTripById
 } from '../controllers/trips.js';
 
+import { requireApiLogin } from "../middleware/auth.js";
+
+import {
+    getUsers,
+    updateUserById,
+    deleteUserById
+} from "../controllers/users.js";
+
+
 const router = Router();
+
 
 /**
  * @openapi
@@ -230,5 +240,177 @@ router.get('/ticket-classes', (req, res) => {
 
     return getAllTicketClasses(req, res);
 });
+
+/****************************************** 
+ *  Users API Routes
+ * 
+ * ****************************************/
+
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: Get users
+ *     description: Returns users the authenticated user is authorized to view. Admins receive the users they can manage, while regular users receive only their own information.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Users returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: Authenticated user not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+    '/users',
+    requireApiLogin,
+    getUsers
+);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update a user
+ *     description: Updates user information.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: MongoDB user ID
+ *         schema:
+ *           type: string
+ *           example: 66f123456789abcdef123456
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 example: Baron Tshibasu
+ *               username:
+ *                 type: string
+ *                 example: baron
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: baron@example.com
+ *               role:
+ *                 type: string
+ *                 example: customer
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID or user data
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put(
+    '/users/:id',
+    requireApiLogin,
+    updateUserById
+);
+
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: Deletes a user by ID.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: MongoDB user ID
+ *         schema:
+ *           type: string
+ *           example: 66f123456789abcdef123456
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete(
+    '/users/:id',
+    requireApiLogin,
+    deleteUserById
+);
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 66f123456789abcdef123456
+ *         displayName:
+ *           type: string
+ *           example: Baron Tshibasu
+ *         username:
+ *           type: string
+ *           example: baron
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: baron@example.com
+ *         role:
+ *           type: string
+ *           example: customer
+ *       required:
+ *         - _id
+ *         - displayName
+ *         - username
+ *         - email
+ *         - role
+ */
+
+
+
 
 export default router;

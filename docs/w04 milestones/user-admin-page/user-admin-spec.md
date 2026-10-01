@@ -68,7 +68,8 @@ Sensitive fields are excluded.
 Invalid data returns 400.
 A missing user returns 404.
 Server errors return 500.
-Issue 3 — Secure User Management Operations
+
+## Issue 3 — Secure User Management Operations
 Goal
 
 Ensure users can only perform operations they are authorized to perform.
