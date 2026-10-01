@@ -12,7 +12,9 @@ import {
     getTripById
 } from '../controllers/trips.js';
 
-import { getAllBookings } from '../controllers/bookings.js';
+import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
+
+import { requireApiLogin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -307,5 +309,36 @@ router.get('/ticket-classes', (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/bookings', getAllBookings);
+
+/**
+ * @openapi
+ * /api/bookings/mine:
+ *   get:
+ *     summary: Get the signed-in user's bookings
+ *     description: Returns bookings where the signed-in user's email matches one of the passengers.
+ *     tags:
+ *       - Bookings
+ *     responses:
+ *       200:
+ *         description: The user's bookings, newest first.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Booking'
+ *       401:
+ *         description: Not signed in, or the session is out of date.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error while fetching bookings.
+ */
+router.get('/bookings/mine', requireApiLogin, getMyBookings);
 
 export default router;

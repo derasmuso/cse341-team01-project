@@ -28,3 +28,17 @@ export async function getAllBookings() {
 export async function getBookingById(id) {
     return Booking.findOne({ id }).lean();
 }
+
+/**
+ * Retrieves every booking that has a passenger with the given email address,
+ * newest first. Matching is case-insensitive (collation strength 2) because
+ * passenger emails are stored exactly as they were typed on the booking form.
+ * @param {string} email - The email address to look for among the passengers.
+ * @returns {Promise<object[]>} The matching bookings.
+ */
+export async function getBookingsByPassengerEmail(email) {
+    return Booking.find({ 'passengers.email': email })
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ createdAt: -1 })
+        .lean();
+}

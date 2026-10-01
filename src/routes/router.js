@@ -11,6 +11,8 @@ import apiRoutes from './api-routes.js';
 
 import authRoutes from './auth-routes.js';
 import adminRoutes from './admin-routes.js';
+import { userDashboardPage } from '../controllers/dashboard.js';
+import { requirePageLogin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -22,6 +24,9 @@ router.get('/', homePage);
 
 // Authentication and authorization routes
 router.use('/', authRoutes);
+
+// User dashboard
+router.get('/dashboard', requirePageLogin, userDashboardPage);
 
 // Admin routes
 router.use('/admin', adminRoutes);
