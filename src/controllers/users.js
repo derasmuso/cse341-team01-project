@@ -17,6 +17,11 @@ const allowedUpdateFields = [
 
 const validRoles = ["1", "2"];
 
+
+/*******************************************
+ * Get all users or a single user by ID
+ * *************************************** */
+
 export async function getUsers(req, res, next) {
     try {
         if (req.user.role === "admin") {
@@ -38,6 +43,10 @@ export async function getUsers(req, res, next) {
         return next(error);
     }
 }
+
+/*******************************************
+ * Update user by ID 
+ * *************************************** */
 
 export async function updateUserById(req, res, next) {
     const { id } = req.params;
@@ -158,6 +167,10 @@ export async function updateUserById(req, res, next) {
         return next(error);
     }
 }
+
+/*******************************************
+ * Delete user by ID 
+ * *************************************** */
 
 export async function deleteUserById(req, res, next) {
     const { id } = req.params;

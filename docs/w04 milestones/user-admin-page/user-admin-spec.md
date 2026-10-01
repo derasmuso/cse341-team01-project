@@ -97,11 +97,12 @@ Users can manage their own permitted information.
 
 
 ## Issue 4 — Implement Dynamic User Management UI
-Goal
+
+### Goal
 
 Allow administrators to manage users without refreshing the page.
 
-Requirements
+### Requirements
 Create the /admin/users page.
 Load users dynamically through GET /api/users.
 Render users using HTML templates.

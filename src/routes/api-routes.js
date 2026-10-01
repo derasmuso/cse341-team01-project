@@ -80,6 +80,12 @@ const router = Router();
  *           type: string
  */
 
+
+
+/***********************************
+ *           Trips API Routes   
+ * ******************************* */
+
 /**
  * @openapi
  * /api/trips:
@@ -141,6 +147,11 @@ router.get('/trips', getAllTrips);
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips/:id', getTripById);
+
+
+/******************************************
+ *           Ticket Classes API Routes   
+ * ****************************************/
 
 /**
  * @openapi
@@ -240,6 +251,7 @@ router.get('/ticket-classes', (req, res) => {
 
     return getAllTicketClasses(req, res);
 });
+
 
 /****************************************** 
  *  Users API Routes

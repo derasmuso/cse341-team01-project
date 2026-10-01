@@ -132,11 +132,6 @@ async function saveUser(card, originalUser) {
         .value
         .trim();
 
-    const username = form
-        .querySelector('.edit-username')
-        .value
-        .trim();
-
     const email = form
         .querySelector('.edit-email')
         .value
@@ -148,10 +143,12 @@ async function saveUser(card, originalUser) {
 
     const updateData = {
         displayName,
-        username,
         email,
         role
     };
+
+    console.log('Updating user:', originalUser._id);
+    console.log('Update data:', updateData);
 
     try {
         const response = await fetch(
@@ -167,6 +164,8 @@ async function saveUser(card, originalUser) {
 
         const data = await response.json();
 
+        console.log('Update response:', response.status, data);
+
         if (!response.ok) {
             throw new Error(
                 data.message || 'Failed to update user.'
@@ -179,10 +178,10 @@ async function saveUser(card, originalUser) {
 
         showMessage('User updated successfully.');
     } catch (error) {
+        console.error('Update error:', error);
         showMessage(error.message);
     }
 }
-
 
 /**************************************
  * Deletes a user
