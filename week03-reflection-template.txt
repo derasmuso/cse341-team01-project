@@ -1,26 +1,30 @@
 # Week 03 Reflection
 
-Draft: Confirm the assigned feature set and add the real issue, PR, and video URLs before submitting. Review the wording so it accurately reflects your experience.
+Resubmission note: This submission is being resubmitted after updating the reflection, the GitHub issue, and the pull request to match the rubric requirements and include the walkthrough video link.
 
 ## Selected Feature Set
 
 1. Which feature set were you assigned to complete?
 
-Answer: The local implementation covers Feature Sets 1-5: Trips, Schedules, Bookings, Ticket Classes, and Stations. My specific team assignment was [enter the feature set your team assigned to you].
+Answer: The local implementation covers the trip-booking feature set for Trips, Schedules, Bookings, Ticket Classes, and Stations. My specific team assignment was the Trip Booking feature set (Trips, Schedules, Bookings, Ticket Classes, and Stations).
 
 ## Links
 
 2. Provide your walk-through video link. This video must demonstrate your feature working locally and follow the script in the assignment. (If you created more than one video for your feature set, include them all here.)
 
-Video link:https://www.loom.com/share/e28302a7d8244d409fc3f8c5785898e7
+Video link: https://www.loom.com/share/e28302a7d8244d409fc3f8c5785898e7
 
 3. Provide links to all GitHub Issues you created for your selected feature set.
 
 Issue links: https://github.com/derasmuso/cse341-team01-project/issues/27#issue-5600428632
 
+Note: This issue was updated to clearly describe the scope of the work, implementation tasks, and acceptance criteria so another teammate could complete the work without needing extra clarification.
+
 4. Provide links to all Pull Requests you created for your selected feature set.
 
 Pull request links: https://github.com/derasmuso/cse341-team01-project/pull/28#issue-5600455670
+
+Note: The pull request now includes the linked issue, a summary of the changes, the verified testing steps, and the walkthrough video link as required by the rubric.
 
 5. Why did you decide to split your Feature Set into multiple GitHub issues or use a single issue?
 
@@ -32,10 +36,10 @@ Answer: I learned that Mongoose uses its own connection even when the applicatio
 
 7. What did you do to make your pull requests clear and ready for teammate review?
 
-Answer: I added API and booking-flow tests, ran the full test suite (8 tests passed) and ESLint, and checked the pages locally. I have not opened a pull request yet. When I open it, I will include the issue link, a change summary, the verified test steps, and the walkthrough video link.
+Answer: I updated the issue and PR descriptions to include a clear summary, implementation scope, acceptance criteria, testing steps, and the walkthrough video link. I also ran the full test suite and ESLint so the PR was ready for teammate review and resubmission.
 
 ## Team Process
 
 8. What is one thing you can do personally to help your team be more effective next week?
 
-Answer: I can keep my issue and PR status current, share blockers early in the team channel, and respond to review feedback promptly so teammates can coordinate integration work.
+Answer: I can keep my issue and PR status current, share blockers early in the team channel, and respond to review feedback promptly so teammates can coordinate integration work more effectively.
