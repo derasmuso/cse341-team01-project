@@ -12,48 +12,6 @@
     }
   ],
   "paths": {
-    "/api/trips/{id}/schedules": {
-      "get": {
-        "summary": "Get schedules for a trip",
-        "description": "Returns the schedules for a specific trip. An optional month query parameter can be used to filter the schedules by month.",
-        "tags": [
-          "Schedules"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The ID of the trip"
-          },
-          {
-            "in": "query",
-            "name": "month",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 12
-            },
-            "description": "The month number to filter schedules by"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Schedules retrieved successfully"
-          },
-          "404": {
-            "description": "Trip or schedules not found"
-          },
-          "500": {
-            "description": "Failed to fetch schedules"
-          }
-        }
-      }
-    },
     "/api/trips": {
       "get": {
         "summary": "Get all trips",
@@ -87,6 +45,11 @@
         }
       }
     },
+    "/api/trips/{id}": {
+      "get": {
+        "summary": "Get one trip by id",
+        "tags": [
+          "Trips"
         ],
         "parameters": [
           {
@@ -96,20 +59,10 @@
             "schema": {
               "type": "string"
             },
-{
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
             "example": "alpine-panorama",
             "description": "The trip's custom id"
           }
-          }
         ],
-        "responses": {
-          "200": {
         "responses": {
           "200": {
             "description": "The matching trip",
@@ -142,6 +95,210 @@
             }
           }
         }
+      }
+    },
+    "/api/ticket-classes": {
+      "get": {
+        "summary": "Get ticket classes",
+        "description": "Returns all ticket classes, or only the ticket classes available on the requested day when the day query parameter is provided.",
+        "tags": [
+          "Ticket Classes"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "description": "Day of the week used to filter available ticket classes.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday"
+              ]
+            },
+            "example": "monday"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket classes retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "class": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "premium",
+                          "first"
+                        ],
+                        "example": "standard"
+                      },
+                      "pricePerKm": {
+                        "type": "number",
+                        "example": 80
+                      },
+                      "amenities": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "example": [
+                          "Comfortable seats",
+                          "Large windows",
+                          "Complimentary tea"
+                        ]
+                      },
+                      "description": {
+                        "type": "string",
+                        "example": "Comfortable and affordable railway travel."
+                      },
+                      "availableDays": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "monday",
+                            "tuesday",
+                            "wednesday",
+                            "thursday",
+                            "friday",
+                            "saturday",
+                            "sunday"
+                          ]
+                        },
+                        "example": [
+                          "monday",
+                          "tuesday"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid day query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid day"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "get": {
+        "summary": "Get all bookings",
+        "tags": [
+          "Bookings"
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of all bookings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/mine": {
+      "get": {
+        "summary": "Get the signed-in user's bookings",
+        "description": "Returns bookings where the signed-in user's email matches one of the passengers.",
+        "tags": [
+          "Bookings"
+        ],
+        "responses": {
+          "200": {
+            "description": "The user's bookings, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in, or the session is out of date.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error while fetching bookings."
           }
         }
       }

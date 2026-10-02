@@ -1,9 +1,6 @@
 import { Router } from 'express';
 
 import { homePage, aboutPage, testErrorPage } from './index.js';
-import { Router } from 'express';
-
-import { homePage, aboutPage, testErrorPage } from './index.js';
 import { bookingsAdminPage } from '../controllers/bookings.js';
 import { getSchedulesForTrip } from '../controllers/schedules.js';
 import { userDashboardPage } from '../controllers/dashboard.js';
