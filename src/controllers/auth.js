@@ -68,10 +68,13 @@ export async function login(req, res, next) {
             id: user._id.toString(),
             displayName: user.displayName,
             username: user.username,
+            email: user.email,
             role: user.role.name,
         };
 
-        return res.redirect('/admin/dashboard');
+        // Admins go to the admin dashboard, everyone else to the user dashboard.
+        const destination = user.role.name === 'admin' ? '/admin/dashboard' : '/dashboard';
+        return res.redirect(destination);
     } catch (error) {
         return next(error);
     }

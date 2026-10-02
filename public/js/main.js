@@ -233,10 +233,64 @@ const hookTripsList = async () => {
     }
 };
 
+const hookUserDashboard = async () => {
+    const tableEl = document.getElementById('my-bookings-table');
+    const listEl = document.getElementById('my-bookings-list');
+    const templateEl = document.getElementById('my-booking-row-template');
+    const loadingEl = document.getElementById('my-bookings-loading');
+    const errorEl = document.getElementById('my-bookings-error');
+    const emptyEl = document.getElementById('my-bookings-empty');
+
+    if (!tableEl || !listEl || !templateEl) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/bookings/mine');
+        if (!response.ok) {
+            throw new Error(`Failed to load bookings (${response.status})`);
+        }
+
+        const payload = await response.json();
+        const bookings = payload.bookings || [];
+
+        loadingEl.hidden = true;
+
+        if (bookings.length === 0) {
+            emptyEl.hidden = false;
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        bookings.forEach((booking) => {
+            const row = templateEl.content.cloneNode(true);
+            const passengerCount = Array.isArray(booking.passengers) ? booking.passengers.length : 0;
+            const bookedOn = booking.createdAt ? new Date(booking.createdAt).toLocaleString() : '';
+
+            row.querySelector('[data-field="id"]').textContent = booking.id;
+            row.querySelector('[data-field="ticketClass"]').textContent = booking.ticketClass;
+            row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
+            row.querySelector('[data-field="passengers"]').textContent = passengerCount;
+            row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
+
+            fragment.appendChild(row);
+        });
+
+        listEl.replaceChildren(fragment);
+        tableEl.hidden = false;
+    } catch (error) {
+        loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = 'Unable to load your bookings right now. Please try again in a moment.';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     hookRegionSorter();
     hookSeasonSorter();
     hookTrainsCatalog();
     hookBookingsAdmin();
     hookTripsList();
+    hookUserDashboard();
 });
