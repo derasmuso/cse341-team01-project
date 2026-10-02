@@ -1,4 +1,3 @@
-
 import Schedule from "./schemas/schedules.js";
 import { getDb } from "../db/connect.js";
 
@@ -34,3 +33,6 @@ export const getSchedulesByTripId = async (tripId, month) => {
     }
 };
 
+export const getScheduleById = async (scheduleId) => {
+    return getDb().collection("schedules").findOne({ id: Number(scheduleId) });
+};

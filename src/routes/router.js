@@ -1,13 +1,39 @@
-import railTripsRouter from './trips.js';
-import { trainsApi, trainsPage } from './trains.js';
 import { Router } from 'express';
+
 import { homePage, aboutPage, testErrorPage } from './index.js';
+import { Router } from 'express';
+
+import { homePage, aboutPage, testErrorPage } from './index.js';
+import { bookingsAdminPage } from '../controllers/bookings.js';
 import { getSchedulesForTrip } from '../controllers/schedules.js';
+import { userDashboardPage } from '../controllers/dashboard.js';
+import { requirePageLogin } from '../middleware/auth.js';
+
+import { trainsApi, trainsPage } from './trains.js';
+
+import ejsRoutes from './ejs-routes.js';
+
+import apiRoutes from './api-routes.js';
+
+import authRoutes from './auth-routes.js';
+import adminRoutes from './admin-routes.js';
 
 const router = Router();
 
+// API routes
+router.use('/api', apiRoutes);
+
 // Home page
 router.get('/', homePage);
+
+// Authentication and authorization routes
+router.use('/', authRoutes);
+
+// User dashboard
+router.get('/dashboard', requirePageLogin, userDashboardPage);
+
+// Admin routes
+router.use('/admin', adminRoutes);
 
 // About page
 router.get('/about', aboutPage);
@@ -18,41 +44,13 @@ router.get('/trains', trainsPage);
 // Trains API
 router.get('/api/trains', trainsApi);
 
-/**
- * @swagger
- * /api/trips/{id}/schedules:
- *   get:
- *     summary: Get schedules for a trip
- *     description: Returns the schedules for a specific trip. An optional month query parameter can be used to filter the schedules by month.
- *     tags:
- *       - Schedules
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the trip
- *       - in: query
- *         name: month
- *         required: false
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 12
- *         description: The month number to filter schedules by
- *     responses:
- *       200:
- *         description: Schedules retrieved successfully
- *       404:
- *         description: Trip or schedules not found
- *       500:
- *         description: Failed to fetch schedules
- */
 router.get('/api/trips/:id/schedules', getSchedulesForTrip);
 
-// Rail trips
-router.use('/trips', railTripsRouter);
+// Bookings admin page
+router.get('/bookings-admin', bookingsAdminPage);
+
+// EJS routes
+router.use('/trips', ejsRoutes);
 
 // Test 500 error page
 router.get('/500', testErrorPage);

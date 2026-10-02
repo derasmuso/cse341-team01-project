@@ -62,5 +62,7 @@ const trainSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
 const Train = mongoose.model("Train", trainSchema);
+
 export default Train;
