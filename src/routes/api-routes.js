@@ -3,25 +3,18 @@
 import { Router } from 'express';
 
 import {
-    getAllTicketClasses,
-    getTicketClassesForDay
+  getAllTicketClasses,
+  getTicketClassesForDay,
 } from '../controllers/ticket-classes.js';
 
-import {
-    getAllTrips,
-    getTripById
-} from '../controllers/trips.js';
+import { getAllTrips, getTripById } from '../controllers/trips.js';
 
 import {
-    getSchedulesForTrip,
-    getSchedulesForTripAndMonth
+  getSchedulesForTrip,
+  getSchedulesForTripAndMonth,
 } from '../controllers/schedules.js';
 
-import { 
-    getAllBookings, 
-    getMyBookings 
-} from '../controllers/bookings.js';
-
+import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
 
@@ -180,11 +173,11 @@ router.get('/trips', getAllTrips);
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips/:id/schedules', (req, res) => {
-    if (req.query.month !== undefined) {
-        return getSchedulesForTripAndMonth(req, res);
-    }
+  if (req.query.month !== undefined) {
+    return getSchedulesForTripAndMonth(req, res);
+  }
 
-    return getSchedulesForTrip(req, res);
+  return getSchedulesForTrip(req, res);
 });
 
 /**
@@ -223,7 +216,6 @@ router.get('/trips/:id/schedules', (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips/:id', getTripById);
-
 
 /**
  * @openapi
@@ -317,11 +309,11 @@ router.get('/trips/:id', getTripById);
  *                   example: Internal server error
  */
 router.get('/ticket-classes', (req, res) => {
-    if (req.query.day !== undefined) {
-        return getTicketClassesForDay(req, res);
-    }
+  if (req.query.day !== undefined) {
+    return getTicketClassesForDay(req, res);
+  }
 
-    return getAllTicketClasses(req, res);
+  return getAllTicketClasses(req, res);
 });
 
 /**

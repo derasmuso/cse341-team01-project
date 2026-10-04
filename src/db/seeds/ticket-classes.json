@@ -1,39 +1,42 @@
 [
-    {
-        "class": "standard",
-        "pricePerKm": 80,
-        "amenities": [
-            "Comfortable seats",
-            "Large windows",
-            "Complimentary tea"
-        ],
-        "description": "Enjoy scenic views from comfortable seats with complimentary refreshments",
-        "availableDays": ["tuesday", "thursday" ]
-        
-    },
-    {
-        "class": "premium",
-        "pricePerKm": 150,
-        "amenities": [
-            "Panoramic windows",
-            "Meal service",
-            "Reserved seating",
-            "Souvenir photo"
-        ],
-        "description": "Enhanced experience with meal service and panoramic viewing windows",
-        "availableDays": ["monday", "tuesday", "thursday", "friday"]
-    },
-    {
-        "class": "first",
-        "pricePerKm": 250,
-        "amenities": [
-            "Private compartment",
-            "Multi-course meal",
-            "Champagne service",
-            "Priority boarding",
-            "Souvenir gift"
-        ],
-        "description": "Ultimate luxury with private seating and full dining service",
-        "availableDays": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-    }
+  {
+    "class": "standard",
+    "pricePerKm": 80,
+    "amenities": ["Comfortable seats", "Large windows", "Complimentary tea"],
+    "description": "Enjoy scenic views from comfortable seats with complimentary refreshments",
+    "availableDays": ["tuesday", "thursday"]
+  },
+  {
+    "class": "premium",
+    "pricePerKm": 150,
+    "amenities": [
+      "Panoramic windows",
+      "Meal service",
+      "Reserved seating",
+      "Souvenir photo"
+    ],
+    "description": "Enhanced experience with meal service and panoramic viewing windows",
+    "availableDays": ["monday", "tuesday", "thursday", "friday"]
+  },
+  {
+    "class": "first",
+    "pricePerKm": 250,
+    "amenities": [
+      "Private compartment",
+      "Multi-course meal",
+      "Champagne service",
+      "Priority boarding",
+      "Souvenir gift"
+    ],
+    "description": "Ultimate luxury with private seating and full dining service",
+    "availableDays": [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ]
+  }
 ]
