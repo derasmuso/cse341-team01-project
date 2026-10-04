@@ -11,7 +11,7 @@ const starterCollections = [
   ['stations', stations],
   ['ticketClasses', ticketClasses],
   ['trains', trains],
-  ['roles', roles]
+  ['roles', roles],
 ];
 
 const initializeDatabase = async (db) => {

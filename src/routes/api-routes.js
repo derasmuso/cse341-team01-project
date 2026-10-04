@@ -4,15 +4,20 @@ import { Router } from 'express';
 
 import {
     getAllTicketClasses,
-    getTicketClassesForDay
+    getTicketClassesForDay,
 } from '../controllers/ticket-classes.js';
 
-import {
-    getAllTrips,
-    getTripById
-} from '../controllers/trips.js';
+import { getAllTrips, getTripById } from '../controllers/trips.js';
 
-import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
+import {
+    getSchedulesForTrip,
+    getSchedulesForTripAndMonth,
+} from '../controllers/schedules.js';
+
+import {
+    getAllBookings,
+    getMyBookings,
+} from '../controllers/bookings.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
 
@@ -98,6 +103,85 @@ const router = Router();
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips', getAllTrips);
+
+/**
+ * @openapi
+ * /api/trips/{id}/schedules:
+ *   get:
+ *     summary: Get schedules for a trip
+ *     description: Returns all schedules for a trip, or schedules when the trip operates in the specified month.
+ *     tags:
+ *       - Schedules
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The trip's custom ID.
+ *         schema:
+ *           type: string
+ *         example: alpine-panorama
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         description: Month number used to filter schedules. Must be an integer from 1 to 12.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         example: 6
+ *     responses:
+ *       200:
+ *         description: Schedules retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   tripId:
+ *                     type: string
+ *                     example: alpine-panorama
+ *                   departureTime:
+ *                     type: string
+ *                     example: "08:30"
+ *                   arrivalTime:
+ *                     type: string
+ *                     example: "13:00"
+ *                   daysOfWeek:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example:
+ *                       - monday
+ *                       - wednesday
+ *                       - friday
+ *                   status:
+ *                     type: boolean
+ *                     example: true
+ *       400:
+ *         description: Invalid month parameter.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to fetch schedules.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/trips/:id/schedules', (req, res) => {
+    if (req.query.month !== undefined) {
+        return getSchedulesForTripAndMonth(req, res);
+    }
+
+    return getSchedulesForTrip(req, res);
+});
 
 /**
  * @openapi
