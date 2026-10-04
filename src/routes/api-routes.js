@@ -14,6 +14,8 @@ import {
   getSchedulesForTripAndMonth,
 } from '../controllers/schedules.js';
 
+import { trainsApi } from './trains.js';
+
 import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
@@ -315,6 +317,9 @@ router.get('/ticket-classes', (req, res) => {
 
   return getAllTicketClasses(req, res);
 });
+
+// Trains API
+router.get('/api/trains', trainsApi);
 
 /**
  * @openapi
