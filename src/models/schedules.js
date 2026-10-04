@@ -1,32 +1,37 @@
+// src/models/schedules.js
+
 import Schedule from "./schemas/schedules.js";
 import { getDb } from "../db/connect.js";
 
 export const getSchedulesByTripId = async (tripId, month) => {
     try {
-        const schedules = await Schedule.find({ tripId }).lean();
+        if (month !== undefined) {
+            const monthNumber = Number(month);
 
-        if (month === undefined) {
-            return schedules;
+            if (
+                !Number.isInteger(monthNumber) ||
+                monthNumber < 1 ||
+                monthNumber > 12
+            ) {
+                return [];
+            }
+
+            const db = getDb();
+
+            const trip = await db.collection("trips").findOne(
+                { id: tripId },
+                { projection: { operatingMonths: 1 } }
+            );
+
+            if (
+                !trip ||
+                !trip.operatingMonths?.includes(monthNumber)
+            ) {
+                return [];
+            }
         }
 
-        const monthNumber = Number(month);
-
-        if (monthNumber < 1 || monthNumber > 12) {
-            return [];
-        }
-
-        const db = getDb();
-
-        const trip = await db.collection("trips").findOne(
-            { id: tripId },
-            { projection: { operatingMonths: 1 } }
-        );
-
-        if (!trip || !trip.operatingMonths?.includes(monthNumber)) {
-            return [];
-        }
-
-        return schedules;
+        return await Schedule.find({ tripId }).lean();
     } catch (error) {
         console.error("Error fetching schedules:", error);
         throw error;
@@ -34,5 +39,7 @@ export const getSchedulesByTripId = async (tripId, month) => {
 };
 
 export const getScheduleById = async (scheduleId) => {
-    return getDb().collection("schedules").findOne({ id: Number(scheduleId) });
+    return getDb()
+        .collection("schedules")
+        .findOne({ id: Number(scheduleId) });
 };
