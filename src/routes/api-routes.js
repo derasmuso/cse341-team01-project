@@ -280,18 +280,85 @@ router.get('/ticket-classes', (req, res) => {
  *         createdAt:
  *           type: string
  *           format: date-time
+ *     PageMeta:
+ *       type: object
+ *       description: Information about the query that produced a page of results.
+ *       properties:
+ *         totalItems:
+ *           type: integer
+ *           description: Total number of items matching the query across all pages.
+ *           example: 87
+ *         totalPages:
+ *           type: integer
+ *           example: 9
+ *         page:
+ *           type: integer
+ *           description: The page that was returned.
+ *           example: 1
+ *         limit:
+ *           type: integer
+ *           description: Maximum number of items per page.
+ *           example: 10
+ *         sortBy:
+ *           type: string
+ *           example: createdAt
+ *         sortOrder:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: desc
+ *         filters:
+ *           type: object
+ *           description: The filters applied to the query. Empty when no filters are active.
+ *           example: {}
  */
 
 /**
  * @openapi
  * /api/bookings:
  *   get:
- *     summary: Get all bookings
+ *     summary: Get a page of bookings
+ *     description: Returns one page of bookings plus metadata about the query. Results are sorted by booking date (createdAt), newest first, unless sortBy and sortOrder say otherwise.
  *     tags:
  *       - Bookings
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number to return, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of bookings per page.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         example: 10
+ *       - in: query
+ *         name: sortBy
+ *         required: false
+ *         description: Booking field to sort by.
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, ticketClass, selectedDay]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         required: false
+ *         description: Sort direction.
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
  *     responses:
  *       200:
- *         description: A list of all bookings.
+ *         description: A page of bookings and metadata about the query. A page past the last one returns an empty bookings array.
  *         content:
  *           application/json:
  *             schema:
@@ -301,6 +368,16 @@ router.get('/ticket-classes', (req, res) => {
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Booking'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PageMeta'
+ *       400:
+ *         description: A paging or sorting query parameter is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: limit must be between 1 and 100
  *       500:
  *         description: Failed to fetch bookings
  *         content:

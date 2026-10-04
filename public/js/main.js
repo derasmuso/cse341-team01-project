@@ -88,6 +88,8 @@ const hookTrainsCatalog = async () => {
     }
 };
 
+const BOOKINGS_PAGE_SIZE = 10;
+
 const hookBookingsAdmin = async () => {
     const tableEl = document.getElementById('bookings-table');
     const listEl = document.getElementById('bookings-list');
@@ -95,31 +97,17 @@ const hookBookingsAdmin = async () => {
     const loadingEl = document.getElementById('bookings-loading');
     const errorEl = document.getElementById('bookings-error');
     const emptyEl = document.getElementById('bookings-empty');
+    const paginationEl = document.getElementById('bookings-pagination');
+    const prevButton = document.getElementById('bookings-prev');
+    const nextButton = document.getElementById('bookings-next');
+    const pageInfoEl = document.getElementById('bookings-page-info');
+    const rangeEl = document.getElementById('bookings-range');
 
     if (!tableEl || !listEl || !templateEl) {
         return;
     }
 
-    try {
-        const response = await fetch('/api/bookings');
-        if (!response.ok) {
-            throw new Error(`Failed to load bookings (${response.status})`);
-        }
-
-        const payload = await response.json();
-        const bookings = payload.bookings || [];
-
-        if (loadingEl) {
-            loadingEl.hidden = true;
-        }
-
-        if (bookings.length === 0) {
-            if (emptyEl) {
-                emptyEl.hidden = false;
-            }
-            return;
-        }
-
+    const renderRows = (bookings) => {
         const fragment = document.createDocumentFragment();
 
         bookings.forEach((booking) => {
@@ -137,16 +125,71 @@ const hookBookingsAdmin = async () => {
         });
 
         listEl.replaceChildren(fragment);
-        tableEl.hidden = false;
-    } catch (error) {
-        if (loadingEl) {
-            loadingEl.hidden = true;
+    };
+
+    // Everything the controls show comes from the meta object the API returns.
+    const renderPagination = (meta, shownCount) => {
+        if (!paginationEl) {
+            return;
         }
-        if (errorEl) {
+
+        const firstItem = (meta.page - 1) * meta.limit + 1;
+
+        pageInfoEl.textContent = `Page ${meta.page} of ${meta.totalPages}`;
+        rangeEl.textContent = `Showing ${firstItem}-${firstItem + shownCount - 1} of ${meta.totalItems}`;
+        prevButton.disabled = meta.page <= 1;
+        nextButton.disabled = meta.page >= meta.totalPages;
+        prevButton.onclick = () => loadPage(meta.page - 1);
+        nextButton.onclick = () => loadPage(meta.page + 1);
+        paginationEl.hidden = false;
+    };
+
+    const loadPage = async (page) => {
+        loadingEl.hidden = false;
+        errorEl.hidden = true;
+
+        try {
+            const params = new URLSearchParams({ page, limit: BOOKINGS_PAGE_SIZE });
+            const response = await fetch(`/api/bookings?${params}`);
+            if (!response.ok) {
+                throw new Error(`Failed to load bookings (${response.status})`);
+            }
+
+            const payload = await response.json();
+            const bookings = payload.bookings || [];
+            const { meta } = payload;
+
+            loadingEl.hidden = true;
+
+            if (meta.totalItems === 0) {
+                tableEl.hidden = true;
+                if (paginationEl) {
+                    paginationEl.hidden = true;
+                }
+                emptyEl.hidden = false;
+                return;
+            }
+
+            emptyEl.hidden = true;
+
+            // The requested page is past the end (for example, bookings were
+            // removed since the last load), so jump to the last real page.
+            if (bookings.length === 0 && meta.page > meta.totalPages) {
+                await loadPage(meta.totalPages);
+                return;
+            }
+
+            renderRows(bookings);
+            renderPagination(meta, bookings.length);
+            tableEl.hidden = false;
+        } catch (error) {
+            loadingEl.hidden = true;
             errorEl.hidden = false;
             errorEl.textContent = 'Unable to load bookings right now. Please try again in a moment.';
         }
-    }
+    };
+
+    await loadPage(1);
 };
 
 const hookTripsList = async () => {

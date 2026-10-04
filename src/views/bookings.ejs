@@ -25,6 +25,13 @@
         <tbody id="bookings-list"></tbody>
     </table>
 
+    <nav class="bookings-pagination" id="bookings-pagination" aria-label="Bookings pages" hidden>
+        <button type="button" id="bookings-prev">Previous</button>
+        <span id="bookings-page-info"></span>
+        <button type="button" id="bookings-next">Next</button>
+        <span id="bookings-range"></span>
+    </nav>
+
     <template id="booking-row-template">
         <tr class="booking-row">
             <td data-field="id"></td>

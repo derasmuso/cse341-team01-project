@@ -21,6 +21,35 @@ export async function getAllBookings() {
 }
 
 /**
+ * Retrieves one page of bookings.
+ * `_id` is added as a final sort key so bookings with equal sort values always
+ * come back in the same order, which keeps the pages from overlapping.
+ * @param {object} options
+ * @param {object} [options.filter={}] - MongoDB filter applied before paging.
+ * @param {string} options.sortBy - Booking field to sort by.
+ * @param {1|-1} options.sortDirection - 1 for ascending, -1 for descending.
+ * @param {number} options.skip - Number of bookings to skip.
+ * @param {number} options.limit - Maximum number of bookings to return.
+ * @returns {Promise<object[]>} The bookings on the requested page.
+ */
+export async function getBookingsPage({ filter = {}, sortBy, sortDirection, skip, limit }) {
+    return Booking.find(filter)
+        .sort({ [sortBy]: sortDirection, _id: sortDirection })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+}
+
+/**
+ * Counts the bookings that match a filter, ignoring paging.
+ * @param {object} [filter={}] - MongoDB filter.
+ * @returns {Promise<number>} The total number of matching bookings.
+ */
+export async function countBookings(filter = {}) {
+    return Booking.countDocuments(filter);
+}
+
+/**
  * Retrieves a single booking by its booking id.
  * @param {string} id - The booking's unique id (confirmation code).
  * @returns {Promise<object|null>} The matching booking, or null if not found.
