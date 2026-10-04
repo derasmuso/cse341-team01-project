@@ -32,10 +32,11 @@ const options = {
     },
 
     apis: ['./src/routes/api-routes.js']
+
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
 writeFileSync('./swagger.json', JSON.stringify(swaggerSpec, null, 2));
-
 console.log('Swagger documentation generated.');
+
