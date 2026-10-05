@@ -7,9 +7,9 @@ import Booking from './schemas/bookings.js';
  * @returns {Promise<object>} The newly created booking.
  */
 export async function createBooking(bookingData) {
-    const booking = new Booking(bookingData);
-    await booking.save();
-    return booking.toObject();
+  const booking = new Booking(bookingData);
+  await booking.save();
+  return booking.toObject();
 }
 
 /**
@@ -17,7 +17,7 @@ export async function createBooking(bookingData) {
  * @returns {Promise<object[]>} All bookings.
  */
 export async function getAllBookings() {
-    return Booking.find({}).lean();
+  return Booking.find({}).lean();
 }
 
 /**
@@ -55,7 +55,7 @@ export async function countBookings(filter = {}) {
  * @returns {Promise<object|null>} The matching booking, or null if not found.
  */
 export async function getBookingById(id) {
-    return Booking.findOne({ id }).lean();
+  return Booking.findOne({ id }).lean();
 }
 
 /**
@@ -66,8 +66,8 @@ export async function getBookingById(id) {
  * @returns {Promise<object[]>} The matching bookings.
  */
 export async function getBookingsByPassengerEmail(email) {
-    return Booking.find({ 'passengers.email': email })
-        .collation({ locale: 'en', strength: 2 })
-        .sort({ createdAt: -1 })
-        .lean();
+  return Booking.find({ 'passengers.email': email })
+    .collation({ locale: 'en', strength: 2 })
+    .sort({ createdAt: -1 })
+    .lean();
 }

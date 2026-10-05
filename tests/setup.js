@@ -12,11 +12,11 @@ const connectionString = inject('MONGODB_TEST_URI');
 beforeAll(async () => {
   await connectToDb({
     connectionString,
-    databaseName: 'kizuna-rail-test'
+    databaseName: 'kizuna-rail-test',
   });
 
   await mongoose.connect(connectionString, {
-    dbName: 'kizuna-rail-test'
+    dbName: 'kizuna-rail-test',
   });
 });
 
