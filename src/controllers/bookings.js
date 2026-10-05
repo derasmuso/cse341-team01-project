@@ -19,6 +19,8 @@ const DEFAULT_SORT_BY = 'createdAt';
 const DEFAULT_SORT_ORDER = 'desc';
 const SORT_FIELDS = ['createdAt', 'ticketClass', 'selectedDay'];
 const SORT_ORDERS = ['asc', 'desc'];
+const TICKET_CLASSES = ['standard', 'premium', 'first'];
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Reads a query value as a whole number within a range.
@@ -61,10 +63,34 @@ const parseChoiceParam = (raw, name, choices, defaultValue) => {
 };
 
 /**
- * Validates the paging and sorting query parameters for the bookings API.
+ * Reads a query value as a calendar date written as YYYY-MM-DD.
+ * The value is converted to a Date and back so impossible dates such as
+ * 2026-02-30 are rejected instead of silently rolling over to March.
+ * @returns {{ value?: string, error?: string }}
+ */
+const parseDateParam = (raw, name) => {
+    if (raw === undefined) {
+        return { value: undefined };
+    }
+
+    if (typeof raw !== 'string' || !DATE_PATTERN.test(raw)) {
+        return { error: `${name} must be a date in YYYY-MM-DD format` };
+    }
+
+    const date = new Date(`${raw}T00:00:00.000Z`);
+
+    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
+        return { error: `${name} must be a real calendar date` };
+    }
+
+    return { value: raw };
+};
+
+/**
+ * Validates the paging, sorting and filtering query parameters for the bookings API.
  * @param {object} query - The request's query string object.
- * @returns {{ params?: object, error?: string }} The parsed values, or the
- *   first validation error found.
+ * @returns {{ params?: object, error?: string }} The parsed values (filters
+ *   that were not supplied are undefined), or the first validation error found.
  */
 const parseBookingsQuery = (query) => {
     const page = parseIntegerParam(query.page, 'page', DEFAULT_PAGE, 1, Number.MAX_SAFE_INTEGER);
@@ -72,10 +98,20 @@ const parseBookingsQuery = (query) => {
     const sortBy = parseChoiceParam(query.sortBy, 'sortBy', SORT_FIELDS, DEFAULT_SORT_BY);
     const sortOrder = parseChoiceParam(query.sortOrder, 'sortOrder', SORT_ORDERS, DEFAULT_SORT_ORDER);
 
-    const failed = [page, limit, sortBy, sortOrder].find((result) => result.error);
+    const ticketClass = parseChoiceParam(query.ticketClass, 'ticketClass', TICKET_CLASSES, undefined);
+    const startDate = parseDateParam(query.startDate, 'startDate');
+    const endDate = parseDateParam(query.endDate, 'endDate');
+
+    const failed = [page, limit, sortBy, sortOrder, ticketClass, startDate, endDate]
+        .find((result) => result.error);
 
     if (failed) {
         return { error: failed.error };
+    }
+
+    // YYYY-MM-DD strings sort the same way the dates do, so they compare directly.
+    if (startDate.value && endDate.value && startDate.value > endDate.value) {
+        return { error: 'startDate must be on or before endDate' };
     }
 
     return {
@@ -83,9 +119,40 @@ const parseBookingsQuery = (query) => {
             page: page.value,
             limit: limit.value,
             sortBy: sortBy.value,
-            sortOrder: sortOrder.value
+            sortOrder: sortOrder.value,
+            ticketClass: ticketClass.value,
+            startDate: startDate.value,
+            endDate: endDate.value
         }
     };
+};
+
+/**
+ * Builds the MongoDB filter for the supplied filters, plus a plain copy of
+ * the filters that were applied for the response metadata.
+ * Dates are treated as UTC days, and endDate includes that whole day.
+ * @returns {{ filter: object, applied: object }}
+ */
+const buildBookingsFilter = ({ ticketClass, startDate, endDate }) => {
+    const filter = {};
+    const applied = {};
+
+    if (ticketClass) {
+        filter.ticketClass = ticketClass;
+        applied.ticketClass = ticketClass;
+    }
+
+    if (startDate) {
+        filter.createdAt = { ...filter.createdAt, $gte: new Date(`${startDate}T00:00:00.000Z`) };
+        applied.startDate = startDate;
+    }
+
+    if (endDate) {
+        filter.createdAt = { ...filter.createdAt, $lte: new Date(`${endDate}T23:59:59.999Z`) };
+        applied.endDate = endDate;
+    }
+
+    return { filter, applied };
 };
 
 const bookingPage = async (req, res) => {
@@ -131,6 +198,8 @@ const processBookingRequest = async (req, res) => {
 /**
  * API controller: returns one page of bookings as JSON, along with metadata
  * describing the query (total items, current page, page size, sort and filters).
+ * The ticket class and booking date filters apply before paging, so the totals
+ * and page count describe only the matching bookings.
  */
 const getAllBookings = async (req, res) => {
     const { params, error: validationError } = parseBookingsQuery(req.query);
@@ -140,7 +209,7 @@ const getAllBookings = async (req, res) => {
     }
 
     const { page, limit, sortBy, sortOrder } = params;
-    const filter = {};
+    const { filter, applied } = buildBookingsFilter(params);
 
     try {
         const [bookings, totalItems] = await Promise.all([
@@ -163,7 +232,7 @@ const getAllBookings = async (req, res) => {
                 limit,
                 sortBy,
                 sortOrder,
-                filters: filter
+                filters: applied
             }
         });
     } catch (error) {
@@ -197,7 +266,7 @@ export async function getMyBookings(req, res) {
  * client-side by calling the bookings API.
  */
 const bookingsAdminPage = (req, res) => {
-    res.render('bookings', { title: 'Bookings Admin' });
+    res.render('bookings', { title: 'Bookings Admin', ticketClasses: TICKET_CLASSES });
 };
 
 export { bookingPage, processBookingRequest, getAllBookings, bookingsAdminPage };

@@ -308,8 +308,17 @@ router.get('/ticket-classes', (req, res) => {
  *           example: desc
  *         filters:
  *           type: object
- *           description: The filters applied to the query. Empty when no filters are active.
- *           example: {}
+ *           description: The filters applied to the query. Only filters that were supplied are included, so the object is empty when no filters are active.
+ *           properties:
+ *             ticketClass:
+ *               type: string
+ *               example: premium
+ *             startDate:
+ *               type: string
+ *               example: "2026-01-01"
+ *             endDate:
+ *               type: string
+ *               example: "2026-03-31"
  */
 
 /**
@@ -317,7 +326,7 @@ router.get('/ticket-classes', (req, res) => {
  * /api/bookings:
  *   get:
  *     summary: Get a page of bookings
- *     description: Returns one page of bookings plus metadata about the query. Results are sorted by booking date (createdAt), newest first, unless sortBy and sortOrder say otherwise.
+ *     description: Returns one page of bookings plus metadata about the query. Bookings can be filtered by ticket class and by booking date (createdAt) range, and the filters apply before paging. Results are sorted by booking date, newest first, unless sortBy and sortOrder say otherwise.
  *     tags:
  *       - Bookings
  *     parameters:
@@ -356,6 +365,29 @@ router.get('/ticket-classes', (req, res) => {
  *           type: string
  *           enum: [asc, desc]
  *           default: desc
+ *       - in: query
+ *         name: ticketClass
+ *         required: false
+ *         description: Only return bookings for this ticket class.
+ *         schema:
+ *           type: string
+ *           enum: [standard, premium, first]
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         description: Only return bookings made on or after this date (YYYY-MM-DD, UTC).
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         description: Only return bookings made on or before this date (YYYY-MM-DD, UTC). The whole day is included. Must not be earlier than startDate.
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-03-31"
  *     responses:
  *       200:
  *         description: A page of bookings and metadata about the query. A page past the last one returns an empty bookings array.
@@ -371,7 +403,7 @@ router.get('/ticket-classes', (req, res) => {
  *                 meta:
  *                   $ref: '#/components/schemas/PageMeta'
  *       400:
- *         description: A paging or sorting query parameter is invalid.
+ *         description: A paging, sorting or filter query parameter is invalid.
  *         content:
  *           application/json:
  *             schema:

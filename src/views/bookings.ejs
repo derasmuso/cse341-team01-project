@@ -8,6 +8,28 @@
 </section>
 
 <section class="bookings-admin">
+    <form class="bookings-filters" id="bookings-filters">
+        <label>
+            Ticket class
+            <select name="ticketClass" id="filter-ticket-class">
+                <option value="">All classes</option>
+                <% ticketClasses.forEach((ticketClass) => { %>
+                    <option value="<%= ticketClass %>"><%= ticketClass %></option>
+                <% }); %>
+            </select>
+        </label>
+        <label>
+            Booked from
+            <input type="date" name="startDate" id="filter-start-date">
+        </label>
+        <label>
+            Booked to
+            <input type="date" name="endDate" id="filter-end-date">
+        </label>
+        <button type="submit">Apply</button>
+        <button type="button" id="filters-clear">Clear</button>
+    </form>
+
     <div class="bookings-state" id="bookings-loading">Loading bookings...</div>
     <div class="bookings-state bookings-error" id="bookings-error" hidden></div>
     <div class="bookings-state bookings-empty" id="bookings-empty" hidden>No bookings have been made yet.</div>

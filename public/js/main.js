@@ -102,10 +102,15 @@ const hookBookingsAdmin = async () => {
     const nextButton = document.getElementById('bookings-next');
     const pageInfoEl = document.getElementById('bookings-page-info');
     const rangeEl = document.getElementById('bookings-range');
+    const filterForm = document.getElementById('bookings-filters');
+    const clearButton = document.getElementById('filters-clear');
 
     if (!tableEl || !listEl || !templateEl) {
         return;
     }
+
+    // The filters currently applied. They are kept while stepping through pages.
+    let filters = {};
 
     const renderRows = (bookings) => {
         const fragment = document.createDocumentFragment();
@@ -149,10 +154,15 @@ const hookBookingsAdmin = async () => {
         errorEl.hidden = true;
 
         try {
-            const params = new URLSearchParams({ page, limit: BOOKINGS_PAGE_SIZE });
+            const params = new URLSearchParams({ page, limit: BOOKINGS_PAGE_SIZE, ...filters });
             const response = await fetch(`/api/bookings?${params}`);
             if (!response.ok) {
-                throw new Error(`Failed to load bookings (${response.status})`);
+                const failure = new Error(`Failed to load bookings (${response.status})`);
+                // A 400 message explains what is wrong with the filters, so show it.
+                if (response.status === 400) {
+                    failure.userMessage = (await response.json()).error;
+                }
+                throw failure;
             }
 
             const payload = await response.json();
@@ -166,6 +176,9 @@ const hookBookingsAdmin = async () => {
                 if (paginationEl) {
                     paginationEl.hidden = true;
                 }
+                emptyEl.textContent = Object.keys(meta.filters || {}).length > 0
+                    ? 'No bookings match your filters.'
+                    : 'No bookings have been made yet.';
                 emptyEl.hidden = false;
                 return;
             }
@@ -185,9 +198,29 @@ const hookBookingsAdmin = async () => {
         } catch (error) {
             loadingEl.hidden = true;
             errorEl.hidden = false;
-            errorEl.textContent = 'Unable to load bookings right now. Please try again in a moment.';
+            errorEl.textContent = error.userMessage
+                || 'Unable to load bookings right now. Please try again in a moment.';
         }
     };
+
+    if (filterForm) {
+        filterForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            // Empty fields mean "no filter", so they are left out of the query.
+            filters = Object.fromEntries(
+                [...new FormData(filterForm)].filter(([, value]) => value !== '')
+            );
+            loadPage(1);
+        });
+    }
+
+    if (clearButton) {
+        clearButton.addEventListener('click', () => {
+            filterForm.reset();
+            filters = {};
+            loadPage(1);
+        });
+    }
 
     await loadPage(1);
 };
