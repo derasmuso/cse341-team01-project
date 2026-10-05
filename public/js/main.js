@@ -156,81 +156,107 @@ const hookTripsList = async () => {
     const errorEl = document.getElementById('trips-error');
     const regionSelect = document.getElementById('region-filter');
     const seasonSelect = document.getElementById('season-filter');
+    const paginationEl = document.getElementById('trips-pagination');
+    const prevBtn = document.getElementById('trips-prev');
+    const nextBtn = document.getElementById('trips-next');
+    const indicatorEl = document.getElementById('trips-page-indicator');
+    const pageSize = 2;
 
     if (!listEl || !templateEl) {
         return;
     }
 
-    const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+    const params = new URLSearchParams(window.location.search);
+    const region = params.get('region') || 'all';
+    const season = params.get('season') || 'all';
+    regionSelect.value = region;
+    seasonSelect.value = season;
 
-    const fillSelect = (select, values) => {
-        [...new Set(values)].forEach((value) => {
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = capitalize(value);
-            select.appendChild(option);
-        });
+    let currentPage = 1;
+
+    // Anything bad in the URL (?page=abc, ?page=0) falls back to page 1
+    const readPageFromUrl = () => {
+        const page = Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10);     // Reads ?page=N so a refresh stays on the same page. Anything invalid, like ?page=abc, falls back to page 1.
+        return page >= 1 ? page : 1;
     };
 
-    try {
-        const response = await fetch('/api/trips');
-        if (!response.ok) {
-            throw new Error(`Failed to load trips (${response.status})`);
-        }
+    const buildCard = (trip) => {
+        const card = templateEl.content.cloneNode(true);
+        card.querySelector('.route-card').classList.add(trip.region);
+        card.querySelector('[data-field="name"]').textContent = trip.name;
+        card.querySelector('[data-field="region"]').textContent = trip.region;
+        card.querySelector('[data-field="start"]').textContent = trip.startStation;
+        card.querySelector('[data-field="end"]').textContent = trip.endStation;
+        card.querySelector('[data-field="duration"]').textContent = trip.duration;
+        card.querySelector('[data-field="distance"]').textContent = `${trip.distance}km`;
+        card.querySelector('[data-field="description"]').textContent = trip.description;
+        card.querySelector('[data-field="link"]').href = `/trips/${trip.id}`;
 
-        const trips = await response.json();
+        const seasonEl = card.querySelector('[data-field="season"]');
+        seasonEl.classList.add(`season-${trip.bestSeason}`);
+        seasonEl.textContent = `Best in ${trip.bestSeason}`;
 
-        fillSelect(regionSelect, trips.map((trip) => trip.region));
-        fillSelect(seasonSelect, trips.map((trip) => trip.bestSeason));
-
-        const params = new URLSearchParams(window.location.search);
-        const region = params.get('region') || 'all';
-        const season = params.get('season') || 'all';
-        regionSelect.value = region;
-        seasonSelect.value = season;
-
-        const visibleTrips = trips.filter((trip) =>
-            (region === 'all' || trip.region === region) &&
-            (season === 'all' || trip.bestSeason === season)
-        );
-
-        const fragment = document.createDocumentFragment();
-
-        visibleTrips.forEach((trip) => {
-            const card = templateEl.content.cloneNode(true);
-
-            card.querySelector('.route-card').classList.add(trip.region);
-            card.querySelector('[data-field="name"]').textContent = trip.name;
-            card.querySelector('[data-field="region"]').textContent = trip.region;
-            card.querySelector('[data-field="start"]').textContent = trip.startStation;
-            card.querySelector('[data-field="end"]').textContent = trip.endStation;
-            card.querySelector('[data-field="duration"]').textContent = trip.duration;
-            card.querySelector('[data-field="distance"]').textContent = `${trip.distance}km`;
-            card.querySelector('[data-field="description"]').textContent = trip.description;
-            card.querySelector('[data-field="link"]').href = `/trips/${trip.id}`;
-
-            const seasonEl = card.querySelector('[data-field="season"]');
-            seasonEl.classList.add(`season-${trip.bestSeason}`);
-            seasonEl.textContent = `Best in ${trip.bestSeason}`;
-
-            const highlightsEl = card.querySelector('[data-field="highlights"]');
-            trip.highlights.forEach((highlight) => {
-                const tag = document.createElement('span');
-                tag.className = 'highlight-tag';
-                tag.textContent = highlight;
-                highlightsEl.appendChild(tag);
-            });
-
-            fragment.appendChild(card);
+        const highlightsEl = card.querySelector('[data-field="highlights"]');
+        trip.highlights.forEach((highlight) => {
+            const tag = document.createElement('span');
+            tag.className = 'highlight-tag';
+            tag.textContent = highlight;
+            highlightsEl.appendChild(tag);
         });
+        return card;
+    };
 
-        listEl.replaceChildren(fragment);
-        loadingEl.hidden = true;
-    } catch (error) {
-        loadingEl.hidden = true;
-        errorEl.hidden = false;
-        errorEl.textContent = 'Unable to load trips right now. Please try again in a moment.';
-    }
+    const loadPage = async (page) => {             // Fetches /api/trips?page=N&limit=10, builds a card for each trip, updates "Page X of Y," and disables Previous on page 1 and Next on the last page.
+        loadingEl.hidden = false;
+        errorEl.hidden = true;
+
+        try {
+            const response = await fetch(`/api/trips?page=${page}&limit=${pageSize}`);
+            if (!response.ok) {
+                throw new Error(`Failed to load trips (${response.status})`);
+            }
+
+            const payload = await response.json();
+            const trips = payload.trips || [];
+            currentPage = payload.page;
+
+            // Temporary: filters only the current page until Issue 2 moves filtering to the server
+            const visibleTrips = trips.filter((trip) =>
+                (region === 'all' || trip.region === region) &&
+                (season === 'all' || trip.bestSeason === season)
+            );
+
+            const fragment = document.createDocumentFragment();
+            visibleTrips.forEach((trip) => fragment.appendChild(buildCard(trip)));
+            listEl.replaceChildren(fragment);
+
+            indicatorEl.textContent = `Page ${currentPage} of ${Math.max(payload.totalPages, 1)}`;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= payload.totalPages;
+            paginationEl.hidden = false;
+        } catch (error) {
+            errorEl.hidden = false;
+            errorEl.textContent = 'Unable to load trips right now. Please try again in a moment.';
+        } finally {
+            loadingEl.hidden = true;
+        }
+    };
+
+    const goToPage = (page) => {                                    // 	Runs when Next or Previous is clicked. It updates the URL with pushState, so there's no reload, then loads that page.
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page);
+        window.history.pushState({}, '', url);
+        loadPage(page);
+        listEl.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+    nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+
+    // Browser Back/Forward buttons
+    window.addEventListener('popstate', () => loadPage(readPageFromUrl()));          // Makes the browser's Back and Forward buttons move between pages.
+
+    loadPage(readPageFromUrl());
 };
 
 const hookUserDashboard = async () => {
