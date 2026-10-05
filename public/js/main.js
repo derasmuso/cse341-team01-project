@@ -160,7 +160,7 @@ const hookTripsList = async () => {
     const prevBtn = document.getElementById('trips-prev');
     const nextBtn = document.getElementById('trips-next');
     const indicatorEl = document.getElementById('trips-page-indicator');
-    const pageSize = 2;
+    const pageSize = 10; // Number of trips to display per page
 
     if (!listEl || !templateEl) {
         return;
