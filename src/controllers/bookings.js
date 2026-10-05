@@ -37,16 +37,35 @@ const bookingPage = async (req, res) => {
   });
 };
 
-const processBookingRequest = async (req, res) => {
+const processBookingRequest = async (req, res, next) => {
+  const { scheduleId, tripId, ticketClass, selectedDay, passengers } = req.body;
+  if (
+    !scheduleId ||
+    !tripId ||
+    !ticketClass ||
+    !selectedDay ||
+    !Array.isArray(passengers) ||
+    passengers.length < 1 ||
+    passengers.length > 8
+  ) {
+    return res.status(400).send('Please provide valid booking and passenger details.');
+  }
+
   const booking = {
     id: generateConfirmationCode(),
     createdAt: new Date().toISOString(),
     ...req.body,
   };
 
-  await createBooking(booking);
-
-  res.redirect(`/trips/confirmation/${booking.id}`);
+  try {
+    await createBooking(booking);
+    return res.redirect(`/trips/confirmation/${booking.id}`);
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).send('Please provide valid booking and passenger details.');
+    }
+    return next(error);
+  }
 };
 
 /**

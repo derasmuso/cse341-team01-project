@@ -52,6 +52,11 @@ article.booking-page {
                     padding: calc(var(--space-sm) / 2);
                     transition: all 0.2s ease;
 
+                    &.unavailable {
+                        opacity: 0.45;
+                        cursor: not-allowed;
+                    }
+
                     &:hover {
                         border-color: var(--clr-primary-light);
                         box-shadow: var(--shadow-md);
@@ -576,6 +581,33 @@ article.booking-page {
                     }
                 }
             }
+        }
+    }
+}
+
+.bookings-admin {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+
+    .bookings-table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+
+        th,
+        td {
+            padding: var(--space-sm) var(--space-md);
+            border-bottom: 1px solid var(--clr-border);
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--clr-text-secondary);
+            font-size: var(--font-size-sm);
         }
     }
 }

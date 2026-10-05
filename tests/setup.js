@@ -18,6 +18,7 @@ beforeAll(async () => {
   await mongoose.connect(connectionString, {
     dbName: 'kizuna-rail-test',
   });
+  await mongoose.connect(connectionString, { dbName: 'kizuna-rail-test' });
 });
 
 beforeEach(async () => {
@@ -29,4 +30,5 @@ beforeEach(async () => {
 afterAll(async () => {
   await mongoose.disconnect();
   await closeDb();
+  await mongoose.disconnect();
 });

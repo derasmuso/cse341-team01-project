@@ -37,6 +37,9 @@
                 <ul>
                     <li><a href="/trips">Trips</a></li>
                     <li><a href="/trains">Trains</a></li>
+                    <% if (user && user.role === 'admin') { %>
+                    <li><a href="/bookings-admin">Bookings</a></li>
+                    <% } %>
                     <li><a href="/about">About</a></li>
                     <li><a href="/404">404</a></li>
                     <li><a href="/500">500</a></li>

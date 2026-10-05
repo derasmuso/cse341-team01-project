@@ -15,7 +15,6 @@
         <!-- Day Selection Section -->
         <section class="day-selection">
             <h2 class="section-title">Select The Day</h2>
-        
             <div class="schedule-info">
                 <div class="time-display">
                     <span class="departure-time">
@@ -51,10 +50,10 @@
             <div class="ticket-options">
                 <% if (ticketOptions) { %>
                     <% ticketOptions.forEach((ticket, index) => { %>
-                        <label 
-                            class="ticket-card" 
+                        <label
+                            class="ticket-card"
                             for="ticket-<%= ticket.class %>"
-                            data-ticket-class="<%= ticket.class %>"    
+                            data-ticket-class="<%= ticket.class %>"
                         >
                             <input 
                                 type="radio" 
@@ -74,7 +73,7 @@
                                         <span class="price-amount"><%= Number(ticket.price).toLocaleString() %></span>
                                     </div>
                                 </div>
-                                
+
                                 <p class="ticket-description"><%= ticket.description %></p>
                                 
                                 <ul class="amenities-list">
@@ -93,8 +92,6 @@
                 <% } %>
             </div>
         </section>
-
-        
 
         <section class="passengers-section">
             <div class="passengers-header">

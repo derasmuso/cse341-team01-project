@@ -19,7 +19,8 @@ import {
     getMyBookings,
 } from '../controllers/bookings.js';
 
-import { requireApiLogin } from '../middleware/auth.js';
+import { getAllStations, getStationById } from '../controllers/stations.js';
+import { requireApiLogin, requireApiRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -319,6 +320,9 @@ router.get('/ticket-classes', (req, res) => {
     return getAllTicketClasses(req, res);
 });
 
+router.get('/stations', getAllStations);
+router.get('/stations/:id', getStationById);
+
 /**
  * @openapi
  * components:
@@ -392,7 +396,7 @@ router.get('/ticket-classes', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/bookings', getAllBookings);
+router.get('/bookings', requireApiRole('admin'), getAllBookings);
 
 /**
  * @openapi

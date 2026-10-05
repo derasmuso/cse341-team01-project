@@ -92,7 +92,7 @@ Forking maintains the connection to the original repository and allows you to co
 - **Backend**: Node.js with Express framework
 - **Templating**: EJS
 - **Styling**: Modern nested CSS with custom properties
-- **Database**: MongoDB, using the official MongoDB Node.js driver
+- **Database**: MongoDB, using Mongoose models for application data and the official MongoDB Node.js driver for seed and test setup
 - **Testing**: Vitest, Supertest, and MongoDB Memory Server
 
 ## Skills You'll Develop
