@@ -1,0 +1,41 @@
+# Week 04 Reflection
+
+## Selected Feature Set
+
+1. Which feature set were you assigned to complete?
+
+Answer: The assigned feature set was the Trip Booking feature set for Trips, Schedules, Bookings, Ticket Classes, and Stations. This included the database schemas, models, API routes, controller logic, and EJS views needed for the booking workflow.
+
+## Links
+
+2. Provide your walk-through video link. This video must demonstrate your feature working locally and follow the script in the assignment. (If you created more than one video for your feature set, include them all here.)
+
+Video link: https://www.loom.com/share/f3faf763958547198b91a25d385eb5fe
+
+3. Provide links to all GitHub Issues you created for your selected feature set.
+
+Issue links: https://github.com/derasmuso/cse341-team01-project/issues/27#issue-5600428632
+
+4. Provide links to all Pull Requests you created for your selected feature set.
+
+Pull request links: https://github.com/derasmuso/cse341-team01-project/pull/28#issue-5600455670
+
+## Implementation Reflection
+
+5. Why did you decide to split your Feature Set into multiple GitHub issues or use a single issue?
+
+Answer: I kept the feature set together in a single issue because the schema, model, route, controller, and UI work are interdependent and share the same data contracts. The booking flow depends on both the data model and the API behavior, so implementing and reviewing it as one end-to-end feature makes the work easier to test and easier for teammates to understand.
+
+6. What is one thing you know after completing the assignment that you did not know beforehand?
+
+Answer: I learned that Mongoose and the MongoDB connection setup must be coordinated carefully in tests. The app must connect to the same isolated in-memory database for model-backed tests so seeded data is available without affecting the real project data.
+
+7. What did you do to make your pull requests clear and ready for teammate review?
+
+Answer: I made the issue and pull request descriptions clear by including the implementation scope, the relevant links, a summary of the changes, and a list of the verified testing steps. I also ran the project test suite and lint checks before submitting the pull request so reviewers could evaluate the feature with confidence.
+
+## Team Process
+
+8. What is one thing you can do personally to help your team be more effective next week?
+
+Answer: I can keep my issue and pull request status current, share blockers early, and respond quickly to review feedback so the team can coordinate integration work and avoid delays during the next sprint.

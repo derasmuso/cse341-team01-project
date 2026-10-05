@@ -84,11 +84,11 @@ Target length: about 4-6 minutes. Start the application and database before reco
 
 **Say:**
 
-"I verified the implementation with the project test suite and ESLint. My GitHub issue is issue 27, and my pull request is pull request 28. I will add this walkthrough link to the Week 04 reflection and the pull request after the video is uploaded. Thank you."
+"I verified the implementation with the project test suite and ESLint. My GitHub issue is issue 27, and my pull request is pull request 28. My walkthrough video is https://www.loom.com/share/f3faf763958547198b91a25d385eb5fe. Thank you."
 
 ## Before Recording
 
 - Confirm the app and database are running locally and the booking flow works from start to confirmation.
 - Use only fictional autofill passenger details; do not show credentials, `.env`, or database secrets.
 - Keep the app, browser, and editor text large enough to read in the recording.
-- After uploading, add the video URL to the Week 04 reflection and PR #28.
+- The video URL is included in the Week 04 reflection and PR #28.
