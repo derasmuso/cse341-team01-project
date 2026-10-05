@@ -38,6 +38,7 @@ Greenfield tutorials teach you syntax. Brownfield projects teach you engineering
 **Do not submit PRs to fix code issues.** The technical debt, bugs, and architectural issues are intentional teaching moments for developers working through the exercises.
 
 **However**, if you find:
+
 - Actual errors that break the learning experience
 - Typos in documentation
 - Ideas for new challenges

@@ -1,0 +1,79 @@
+section.dashboard-hero {
+    margin-bottom: var(--space-lg);
+
+    h1 {
+        font-size: var(--font-size-2xl);
+        color: var(--clr-text-primary);
+        margin-bottom: var(--space-xs);
+    }
+
+    p {
+        color: var(--clr-text-secondary);
+    }
+}
+
+section.dashboard-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+
+    .btn {
+        display: inline-block;
+        padding: var(--space-sm) var(--space-xl);
+        font-size: var(--font-size-md);
+        font-weight: 500;
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        background-color: var(--clr-primary);
+        color: var(--clr-text-alt-primary);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: var(--clr-accent);
+            box-shadow: var(--shadow-md);
+        }
+    }
+}
+
+section.dashboard-bookings {
+    h2 {
+        font-size: var(--font-size-xl);
+        color: var(--clr-text-primary);
+        margin-bottom: var(--space-md);
+    }
+
+    .dashboard-state {
+        padding: var(--space-md);
+        color: var(--clr-text-secondary);
+        background-color: var(--clr-surface-alt);
+        border-radius: var(--radius-md);
+
+        &.dashboard-error {
+            color: #c33;
+            background-color: #fee;
+            border: 1px solid #fcc;
+        }
+    }
+
+    .dashboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: var(--clr-surface);
+        box-shadow: var(--shadow-sm);
+
+        th,
+        td {
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--clr-border-light);
+        }
+
+        th {
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--clr-text-secondary);
+        }
+    }
+}

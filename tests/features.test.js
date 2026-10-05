@@ -41,8 +41,8 @@ describe('trip, schedule, station, and ticket-class APIs', () => {
     expect(classes.status).toBe(200);
     expect(classes.body).toHaveLength(3);
     expect(classesForDay.status).toBe(200);
-    expect(classesForDay.body.map((ticketClass) => ticketClass.class)).toEqual(['standard', 'premium']);
-    expect(weekendClasses.body.map((ticketClass) => ticketClass.class)).toEqual(['standard', 'first']);
+    expect(classesForDay.body.map((ticketClass) => ticketClass.class)).toEqual(['premium', 'first']);
+    expect(weekendClasses.body.map((ticketClass) => ticketClass.class)).toEqual(['first']);
     expect(invalidDay.status).toBe(400);
   });
 });
@@ -55,7 +55,7 @@ describe('booking routes', () => {
       .send({
         scheduleId: '1',
         tripId: 'alpine-panorama',
-        ticketClass: 'standard',
+        ticketClass: 'premium',
         selectedDay: 'monday',
         'passengers[0][firstName]': 'Mika',
         'passengers[0][lastName]': 'Sato',
@@ -68,7 +68,7 @@ describe('booking routes', () => {
     const savedBooking = await getDb().collection('bookings').findOne({});
     expect(savedBooking).toMatchObject({
       tripId: 'alpine-panorama',
-      ticketClass: 'standard',
+      ticketClass: 'premium',
       selectedDay: 'monday'
     });
     expect(savedBooking.passengers).toHaveLength(1);

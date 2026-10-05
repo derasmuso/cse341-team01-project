@@ -1,23 +1,41 @@
-import Schedule from "./schemas/schedules.js";
-import Trip from "./schemas/trips.js";
+// src/models/schedules.js
 
-export async function getSchedulesByTripId(tripId, month) {
-    const schedules = await Schedule.find({ tripId: String(tripId) }).lean();
-    if (month === undefined) {
-        return schedules;
+import Schedule from './schemas/schedules.js';
+import { getDb } from '../db/connect.js';
+
+export const getSchedulesByTripId = async (tripId, month) => {
+  try {
+    if (month !== undefined) {
+      const monthNumber = Number(month);
+
+      if (
+        !Number.isInteger(monthNumber) ||
+        monthNumber < 1 ||
+        monthNumber > 12
+      ) {
+        return [];
+      }
+
+      const db = getDb();
+
+      const trip = await db
+        .collection('trips')
+        .findOne({ id: tripId }, { projection: { operatingMonths: 1 } });
+
+      if (!trip || !trip.operatingMonths?.includes(monthNumber)) {
+        return [];
+      }
     }
 
-    const trip = await Trip.findOne({ id: String(tripId) }).select("operatingMonths").lean();
-    return schedules.filter((schedule) => {
-        const applicableMonths = schedule.months || trip?.operatingMonths;
-        return !applicableMonths?.length || applicableMonths.includes(Number(month));
-    });
-}
+    return await Schedule.find({ tripId }).lean();
+  } catch (error) {
+    console.error('Error fetching schedules:', error);
+    throw error;
+  }
+};
 
-export async function getScheduleById(scheduleId) {
-    const numericId = Number(scheduleId);
-    if (!Number.isInteger(numericId)) {
-        return null;
-    }
-    return Schedule.findOne({ id: numericId }).lean();
-}
+export const getScheduleById = async (scheduleId) => {
+  return getDb()
+    .collection('schedules')
+    .findOne({ id: Number(scheduleId) });
+};

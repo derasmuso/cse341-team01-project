@@ -1,15 +1,12 @@
 import { getBookingById } from '../models/bookings.js';
 
 export default async (req, res) => {
-    const { bookingId } = req.params;
+  const { confirmationId } = req.params;
 
-    const booking = await getBookingById(bookingId);
-    if (!booking) {
-        return res.status(404).render('errors/404', { title: 'Booking Not Found' });
-    }
+  const confirmation = await getBookingById(confirmationId);
 
-    return res.render('trips/confirm', {
-        title: 'Trip Confirmation',
-        booking
-    });
+  res.render('trips/confirm', {
+    title: 'Trip Confirmation',
+    confirmation,
+  });
 };

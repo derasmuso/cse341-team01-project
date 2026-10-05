@@ -1,14 +1,47 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const ticketClassSchema = new mongoose.Schema({
-    class: { type: String, required: true, unique: true, trim: true },
-    name: { type: String, required: true, trim: true },
-    pricePerKm: { type: Number, required: true, min: 0 },
-    amenities: { type: [String], default: [] },
-    description: { type: String, required: true, trim: true },
-    availableDays: { type: [String], default: undefined },
-});
+const ticketClassSchema = new mongoose.Schema(
+  {
+    class: {
+      type: String,
+      enum: ['standard', 'premium', 'first'],
+      required: true,
+      unique: true,
+    },
 
-const TicketClass = mongoose.model("TicketClass", ticketClassSchema, "ticketClasses");
+    pricePerKm: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
 
-export default TicketClass;
+    amenities: {
+      type: [String],
+      required: true,
+    },
+
+    description: {
+      type: String,
+      required: true,
+    },
+
+    availableDays: {
+      type: [String],
+      enum: [
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+        'sunday',
+      ],
+      required: true,
+    },
+  },
+  {
+    collection: 'ticketClasses',
+  }
+);
+
+export default mongoose.model('TicketClass', ticketClassSchema);

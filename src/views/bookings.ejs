@@ -1,34 +1,39 @@
-<%- include('partials/header') %>
-<section class="bookings-admin">
-    <h1><%= title %></h1>
-    <p id="bookings-loading" class="trips-state" aria-live="polite">Loading bookings...</p>
-    <p id="bookings-error" class="trips-state trips-error" hidden role="alert"></p>
-    <p id="bookings-empty" class="trips-state" hidden>No bookings have been made.</p>
-    <div class="bookings-table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th scope="col">Reference</th>
-                    <th scope="col">Trip</th>
-                    <th scope="col">Travel day</th>
-                    <th scope="col">Ticket class</th>
-                    <th scope="col">Passengers</th>
-                    <th scope="col">Booked</th>
-                </tr>
-            </thead>
-            <tbody id="bookings-list"></tbody>
-        </table>
-    </div>
+<%- include('./partials/header') %>
+
+<section class="bookings-hero">
+    <h1>Bookings Admin</h1>
+    <p>
+        A live view of every booking made across the Kizuna Rail network.
+    </p>
 </section>
 
-<template id="booking-row-template">
-    <tr>
-        <td data-field="reference"></td>
-        <td data-field="trip"></td>
-        <td data-field="travel-day"></td>
-        <td data-field="ticket"></td>
-        <td data-field="passengers"></td>
-        <td data-field="created"></td>
-    </tr>
-</template>
-<%- include('partials/footer') %>
+<section class="bookings-admin">
+    <div class="bookings-state" id="bookings-loading">Loading bookings...</div>
+    <div class="bookings-state bookings-error" id="bookings-error" hidden></div>
+    <div class="bookings-state bookings-empty" id="bookings-empty" hidden>No bookings have been made yet.</div>
+
+    <table class="bookings-table" id="bookings-table" hidden>
+        <thead>
+            <tr>
+                <th>Confirmation #</th>
+                <th>Ticket Class</th>
+                <th>Travel Day</th>
+                <th>Passengers</th>
+                <th>Booked On</th>
+            </tr>
+        </thead>
+        <tbody id="bookings-list"></tbody>
+    </table>
+
+    <template id="booking-row-template">
+        <tr class="booking-row">
+            <td data-field="id"></td>
+            <td data-field="ticketClass"></td>
+            <td data-field="selectedDay"></td>
+            <td data-field="passengers"></td>
+            <td data-field="createdAt"></td>
+        </tr>
+    </template>
+</section>
+
+<%- include('./partials/footer') %>
