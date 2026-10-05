@@ -7,6 +7,6 @@ export default async (req, res) => {
 
   res.render('trips/confirm', {
     title: 'Trip Confirmation',
-    confirmation,
+    booking: confirmation,
   });
 };

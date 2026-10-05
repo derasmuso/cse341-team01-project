@@ -72,6 +72,10 @@ describe('booking routes', () => {
       selectedDay: 'monday'
     });
     expect(savedBooking.passengers).toHaveLength(1);
+
+    const confirmation = await request(app).get(response.headers.location);
+    expect(confirmation.status).toBe(200);
+    expect(confirmation.text).toContain(savedBooking.id);
   });
 
   test('protects booking records and rejects invalid booking submissions', async () => {
