@@ -21,17 +21,13 @@ import {
 
 import { requireApiLogin } from '../middleware/auth.js';
 
-import { requireApiLogin } from "../middleware/auth.js";
-
 import {
     getUsers,
     updateUserById,
-    deleteUserById
-} from "../controllers/users.js";
-
+    deleteUserById,
+} from '../controllers/users.js';
 
 const router = Router();
-
 
 /**
  * @openapi
@@ -82,6 +78,7 @@ const router = Router();
  *         imageUrl:
  *           type: string
  *           example: /images/routes/alpine-panorama.png
+ *
  *     Error:
  *       type: object
  *       properties:
@@ -89,11 +86,9 @@ const router = Router();
  *           type: string
  */
 
-
-
 /***********************************
- *           Trips API Routes   
- * ******************************* */
+ *           Trips API Routes
+ * *********************************/
 
 /**
  * @openapi
@@ -236,9 +231,8 @@ router.get('/trips/:id/schedules', (req, res) => {
  */
 router.get('/trips/:id', getTripById);
 
-
 /******************************************
- *           Ticket Classes API Routes   
+ *           Ticket Classes API Routes
  * ****************************************/
 
 /**
@@ -313,24 +307,8 @@ router.get('/trips/:id', getTripById);
  *                       - tuesday
  *       400:
  *         description: Invalid day query parameter.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Invalid day
  *       500:
  *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Internal server error
  */
 router.get('/ticket-classes', (req, res) => {
     if (req.query.day !== undefined) {
@@ -340,10 +318,8 @@ router.get('/ticket-classes', (req, res) => {
     return getAllTicketClasses(req, res);
 });
 
-
-/****************************************** 
- *  Users API Routes
- * 
+/******************************************
+ *           Users API Routes
  * ****************************************/
 
 /**
@@ -351,7 +327,7 @@ router.get('/ticket-classes', (req, res) => {
  * /api/users:
  *   get:
  *     summary: Get users
- *     description: Returns users the authenticated user is authorized to view. Admins receive the users they can manage, while regular users receive only their own information.
+ *     description: Returns users the authenticated user is authorized to view. Admins receive all users, while regular users receive only their own information.
  *     tags:
  *       - Users
  *     security:
@@ -372,18 +348,14 @@ router.get('/ticket-classes', (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get(
-    '/users',
-    requireApiLogin,
-    getUsers
-);
+router.get('/users', requireApiLogin, getUsers);
 
 /**
  * @openapi
  * /api/users/{id}:
  *   put:
  *     summary: Update a user
- *     description: Updates user information.
+ *     description: Updates a user's display name, email, or role. Username cannot be changed.
  *     tags:
  *       - Users
  *     security:
@@ -406,16 +378,17 @@ router.get(
  *               displayName:
  *                 type: string
  *                 example: Baron Tshibasu
- *               username:
- *                 type: string
- *                 example: baron
  *               email:
  *                 type: string
  *                 format: email
  *                 example: baron@example.com
  *               role:
  *                 type: string
- *                 example: customer
+ *                 enum:
+ *                   - "1"
+ *                   - "2"
+ *                 example: "1"
+ *                 description: "1 = Customer, 2 = Admin"
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -427,17 +400,14 @@ router.get(
  *         description: Invalid user ID or user data
  *       401:
  *         description: Authentication required
+ *       403:
+ *         description: User is not authorized to perform the operation
  *       404:
  *         description: User not found
  *       500:
  *         description: Internal server error
  */
-router.put(
-    '/users/:id',
-    requireApiLogin,
-    updateUserById
-);
-
+router.put('/users/:id', requireApiLogin, updateUserById);
 
 /**
  * @openapi
@@ -468,17 +438,14 @@ router.put(
  *         description: Invalid user ID
  *       401:
  *         description: Authentication required
+ *       403:
+ *         description: User is not authorized to perform the operation
  *       404:
  *         description: User not found
  *       500:
  *         description: Internal server error
  */
-router.delete(
-    '/users/:id',
-    requireApiLogin,
-    deleteUserById
-);
-
+router.delete('/users/:id', requireApiLogin, deleteUserById);
 
 /**
  * @openapi
@@ -496,62 +463,24 @@ router.delete(
  *         username:
  *           type: string
  *           example: baron
+ *           description: "Username is immutable."
  *         email:
  *           type: string
  *           format: email
  *           example: baron@example.com
  *         role:
  *           type: string
- *           example: customer
+ *           enum:
+ *             - "1"
+ *             - "2"
+ *           example: "1"
+ *           description: "1 = Customer, 2 = Admin"
  *       required:
  *         - _id
  *         - displayName
  *         - username
  *         - email
  *         - role
- */
-
- *     Passenger:
- *       type: object
- *       properties:
- *         firstName:
- *           type: string
- *           example: Yuki
- *         lastName:
- *           type: string
- *           example: Tanaka
- *         email:
- *           type: string
- *           example: yuki.tanaka@example.com
- *         phone:
- *           type: string
- *           example: "+81 90-1234-5678"
- *     Booking:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           description: Unique booking confirmation code.
- *           example: JR4F9X2A1B
- *         scheduleId:
- *           type: string
- *           example: "12"
- *         tripId:
- *           type: string
- *           example: "3"
- *         ticketClass:
- *           type: string
- *           example: standard
- *         selectedDay:
- *           type: string
- *           example: Monday
- *         passengers:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Passenger'
- *         createdAt:
- *           type: string
- *           format: date-time
  */
 
 /**
@@ -604,15 +533,9 @@ router.get('/bookings', getAllBookings);
  *                     $ref: '#/components/schemas/Booking'
  *       401:
  *         description: Not signed in, or the session is out of date.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error while fetching bookings.
  */
 router.get('/bookings/mine', requireApiLogin, getMyBookings);
-
-
 
 export default router;

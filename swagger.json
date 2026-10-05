@@ -125,7 +125,8 @@
           },
           "username": {
             "type": "string",
-            "example": "baron"
+            "example": "baron",
+            "description": "Username is immutable."
           },
           "email": {
             "type": "string",
@@ -134,7 +135,12 @@
           },
           "role": {
             "type": "string",
-            "example": "customer"
+            "enum": [
+              "1",
+              "2"
+            ],
+            "example": "1",
+            "description": "1 = Customer, 2 = Admin"
           }
         },
         "required": [
@@ -426,36 +432,10 @@
             }
           },
           "400": {
-            "description": "Invalid day query parameter.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Invalid day"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Invalid day query parameter."
           },
           "500": {
-            "description": "Internal server error.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Internal server error"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Internal server error."
           }
         }
       }
@@ -463,7 +443,7 @@
     "/api/users": {
       "get": {
         "summary": "Get users",
-        "description": "Returns users the authenticated user is authorized to view. Admins receive the users they can manage, while regular users receive only their own information.",
+        "description": "Returns users the authenticated user is authorized to view. Admins receive all users, while regular users receive only their own information.",
         "tags": [
           "Users"
         ],
@@ -498,132 +478,10 @@
         }
       }
     },
-    "/api/bookings": {
-      "get": {
-        "summary": "Get all bookings",
-        "tags": [
-          "Bookings"
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of all bookings.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "bookings": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Booking"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to fetch bookings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Failed to fetch bookings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/bookings/mine": {
-      "get": {
-        "summary": "Get the signed-in user's bookings",
-        "description": "Returns bookings where the signed-in user's email matches one of the passengers.",
-        "tags": [
-          "Bookings"
-        ],
-        "responses": {
-          "200": {
-            "description": "The user's bookings, newest first.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "bookings": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Booking"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Not signed in, or the session is out of date.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error while fetching bookings."
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Trip": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "alpine-panorama"
-
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "404": {
-            "description": "Authenticated user not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
     "/api/users/{id}": {
       "put": {
         "summary": "Update a user",
-        "description": "Updates user information.",
+        "description": "Updates a user's display name, email, or role. Username cannot be changed.",
         "tags": [
           "Users"
         ],
@@ -655,10 +513,6 @@
                     "type": "string",
                     "example": "Baron Tshibasu"
                   },
-                  "username": {
-                    "type": "string",
-                    "example": "baron"
-                  },
                   "email": {
                     "type": "string",
                     "format": "email",
@@ -666,7 +520,12 @@
                   },
                   "role": {
                     "type": "string",
-                    "example": "customer"
+                    "enum": [
+                      "1",
+                      "2"
+                    ],
+                    "example": "1",
+                    "description": "1 = Customer, 2 = Admin"
                   }
                 }
               }
@@ -689,6 +548,9 @@
           },
           "401": {
             "description": "Authentication required"
+          },
+          "403": {
+            "description": "User is not authorized to perform the operation"
           },
           "404": {
             "description": "User not found"
@@ -738,6 +600,9 @@
           "401": {
             "description": "Authentication required"
           },
+          "403": {
+            "description": "User is not authorized to perform the operation"
+          },
           "404": {
             "description": "User not found"
           },
@@ -745,61 +610,77 @@
             "description": "Internal server error"
           }
         }
-      },
-      "Passenger": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string",
-            "example": "Yuki"
-          },
-          "lastName": {
-            "type": "string",
-            "example": "Tanaka"
-          },
-          "email": {
-            "type": "string",
-            "example": "yuki.tanaka@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+81 90-1234-5678"
-          }
-        }
-      },
-      "Booking": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique booking confirmation code.",
-            "example": "JR4F9X2A1B"
-          },
-          "scheduleId": {
-            "type": "string",
-            "example": "12"
-          },
-          "tripId": {
-            "type": "string",
-            "example": "3"
-          },
-          "ticketClass": {
-            "type": "string",
-            "example": "standard"
-          },
-          "selectedDay": {
-            "type": "string",
-            "example": "Monday"
-          },
-          "passengers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Passenger"
+      }
+    },
+    "/api/bookings": {
+      "get": {
+        "summary": "Get all bookings",
+        "tags": [
+          "Bookings"
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of all bookings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
+          "500": {
+            "description": "Failed to fetch bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/mine": {
+      "get": {
+        "summary": "Get the signed-in user's bookings",
+        "description": "Returns bookings where the signed-in user's email matches one of the passengers.",
+        "tags": [
+          "Bookings"
+        ],
+        "responses": {
+          "200": {
+            "description": "The user's bookings, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in, or the session is out of date."
+          },
+          "500": {
+            "description": "Server error while fetching bookings."
           }
         }
       }
