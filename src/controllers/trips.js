@@ -39,30 +39,44 @@ function parseIntParam(value, fallback) {
 }
 
 export async function getAllTrips(req, res) {
-  const page = parseIntParam(req.query.page, 1);              // So these two default to 1 and 10. 1 being the page that is displayed to the user. And 10 being the amount of trips that are shown to the user
+  const page = parseIntParam(req.query.page, 1);
   const limit = parseIntParam(req.query.limit, 10);
+  const { region, season } = req.query;
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
   if (!Number.isInteger(page) || page < 1) {
     return res.status(400).json({
-      error: 'page must be an integer of 1 or greater',    //if the page number is less than 1 it gives the 400 error with the 1 or greater message.
+      error: 'page must be an integer of 1 or greater',
     });
   }
 
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     return res.status(400).json({
-      error: 'limit must be an integer from 1 to 50',         //If the amount of trips the user wants to see on one page is more than 50, then it gives the 400 error with the from 1 to 50 message.
+      error: 'limit must be an integer from 1 to 50',
+    });
+  }
+
+  if (region !== undefined && !TRIP_REGIONS.includes(region)) {
+    return res.status(400).json({
+      error: `region must be one of: ${TRIP_REGIONS.join(', ')}`,
+    });
+  }
+
+  if (season !== undefined && !TRIP_SEASONS.includes(season)) {
+    return res.status(400).json({
+      error: `season must be one of: ${TRIP_SEASONS.join(', ')}`,
     });
   }
 
   try {
-    const { trips, totalTrips } = await findTripsPage({ page, limit });
+    const { trips, totalTrips } = await findTripsPage({ page, limit, region, season, search });
 
     return res.status(200).json({
       trips,
       page,
       limit,
       totalTrips,
-      totalPages: Math.ceil(totalTrips / limit),      // This returns the trips for the page, the page the user is on, the limit of trips per page, the total amount of trips in the database, and how many pages there are in total based off of how many trips there are
+      totalPages: Math.ceil(totalTrips / limit),
     });
   } catch (error) {
     console.error('Error fetching trips:', error);

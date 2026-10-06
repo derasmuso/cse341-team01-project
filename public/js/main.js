@@ -1,39 +1,3 @@
-const hookRegionSorter = () => {
-    const regionSelect = document.getElementById('region-filter');
-    if (regionSelect) {
-        regionSelect.addEventListener('change', () => {
-            const selectedRegion = regionSelect.value;
-            const url = new URL(window.location.href);
-
-            if (selectedRegion && selectedRegion !== 'all') {
-                url.searchParams.set('region', selectedRegion);
-            } else {
-                url.searchParams.delete('region');
-            }
-
-            window.location.href = url.toString();
-        });
-    }
-};
-
-const hookSeasonSorter = () => {
-    const seasonSelect = document.getElementById('season-filter');
-    if (seasonSelect) {
-        seasonSelect.addEventListener('change', () => {
-            const selectedSeason = seasonSelect.value;
-            const url = new URL(window.location.href);
-
-            if (selectedSeason && selectedSeason !== 'all') {
-                url.searchParams.set('season', selectedSeason);
-            } else {
-                url.searchParams.delete('season');
-            }
-
-            window.location.href = url.toString();
-        });
-    }
-};
-
 const hookTrainsCatalog = async () => {
     const listEl = document.getElementById('trains-list');
     const templateEl = document.getElementById('train-card-template');
@@ -154,30 +118,67 @@ const hookTripsList = async () => {
     const templateEl = document.getElementById('trip-card-template');
     const loadingEl = document.getElementById('trips-loading');
     const errorEl = document.getElementById('trips-error');
+    const emptyEl = document.getElementById('trips-empty');
     const regionSelect = document.getElementById('region-filter');
     const seasonSelect = document.getElementById('season-filter');
+    const searchForm = document.getElementById('trip-search-form');
+    const searchInput = document.getElementById('search-filter');
     const paginationEl = document.getElementById('trips-pagination');
     const prevBtn = document.getElementById('trips-prev');
     const nextBtn = document.getElementById('trips-next');
     const indicatorEl = document.getElementById('trips-page-indicator');
-    const pageSize = 10; // Number of trips to display per page
+    const pageSize = 2; // Number of trips to display per page
 
     if (!listEl || !templateEl) {
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const region = params.get('region') || 'all';
-    const season = params.get('season') || 'all';
-    regionSelect.value = region;
-    seasonSelect.value = season;
-
     let currentPage = 1;
 
-    // Anything bad in the URL (?page=abc, ?page=0) falls back to page 1
-    const readPageFromUrl = () => {
-        const page = Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10);     // Reads ?page=N so a refresh stays on the same page. Anything invalid, like ?page=abc, falls back to page 1.
-        return page >= 1 ? page : 1;
+    // Page and filters from the URL; a bad ?page falls back to 1
+    const readStateFromUrl = () => {
+        const params = new URLSearchParams(window.location.search);
+        const page = Number.parseInt(params.get('page'), 10);
+
+        return {
+            page: page >= 1 ? page : 1,
+            region: params.get('region') || 'all',
+            season: params.get('season') || 'all',
+            search: params.get('search') || '',
+        };
+    };
+
+    // Filters as currently chosen on the page, starting back at page 1
+    const readStateFromControls = () => ({
+        page: 1,
+        region: regionSelect.value,
+        season: seasonSelect.value,
+        search: searchInput.value.trim(),
+    });
+
+    // Shared by the API request and the page URL; "all" and an empty search are left out
+    const buildParams = ({ page, region, season, search }) => {
+        const params = new URLSearchParams();
+
+        if (region !== 'all') {
+            params.set('region', region);
+        }
+        if (season !== 'all') {
+            params.set('season', season);
+        }
+        if (search) {
+            params.set('search', search);
+        }
+        params.set('page', page);
+
+        return params;
+    };
+
+    // Makes the dropdowns and search box match the URL
+    const syncControls = ({ region, season, search }) => {
+        regionSelect.value = region;
+        seasonSelect.value = season;
+        searchInput.value = search;
     };
 
     const buildCard = (trip) => {
@@ -206,12 +207,17 @@ const hookTripsList = async () => {
         return card;
     };
 
-    const loadPage = async (page) => {             // Fetches /api/trips?page=N&limit=10, builds a card for each trip, updates "Page X of Y," and disables Previous on page 1 and Next on the last page.
+    // Fetches one page of filtered trips and updates the cards, empty message, and paging controls
+    const loadTrips = async (state) => {
         loadingEl.hidden = false;
         errorEl.hidden = true;
+        emptyEl.hidden = true;
 
         try {
-            const response = await fetch(`/api/trips?page=${page}&limit=${pageSize}`);
+            const params = buildParams(state);
+            params.set('limit', pageSize);
+
+            const response = await fetch(`/api/trips?${params}`);
             if (!response.ok) {
                 throw new Error(`Failed to load trips (${response.status})`);
             }
@@ -220,21 +226,23 @@ const hookTripsList = async () => {
             const trips = payload.trips || [];
             currentPage = payload.page;
 
-            // Temporary: filters only the current page until Issue 2 moves filtering to the server
-            const visibleTrips = trips.filter((trip) =>
-                (region === 'all' || trip.region === region) &&
-                (season === 'all' || trip.bestSeason === season)
-            );
-
             const fragment = document.createDocumentFragment();
-            visibleTrips.forEach((trip) => fragment.appendChild(buildCard(trip)));
+            trips.forEach((trip) => fragment.appendChild(buildCard(trip)));
             listEl.replaceChildren(fragment);
 
-            indicatorEl.textContent = `Page ${currentPage} of ${Math.max(payload.totalPages, 1)}`;
+            if (payload.totalTrips === 0) {
+                emptyEl.hidden = false;
+                paginationEl.hidden = true;
+                return;
+            }
+
+            indicatorEl.textContent = `Page ${currentPage} of ${payload.totalPages}`;
             prevBtn.disabled = currentPage <= 1;
             nextBtn.disabled = currentPage >= payload.totalPages;
             paginationEl.hidden = false;
         } catch (error) {
+            listEl.replaceChildren();
+            paginationEl.hidden = true;
             errorEl.hidden = false;
             errorEl.textContent = 'Unable to load trips right now. Please try again in a moment.';
         } finally {
@@ -242,21 +250,40 @@ const hookTripsList = async () => {
         }
     };
 
-    const goToPage = (page) => {                                    // 	Runs when Next or Previous is clicked. It updates the URL with pushState, so there's no reload, then loads that page.
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', page);
-        window.history.pushState({}, '', url);
-        loadPage(page);
+    // Saves the state to the URL without a reload, then loads it
+    const navigate = (state) => {
+        window.history.pushState({}, '', `${window.location.pathname}?${buildParams(state)}`);
+        loadTrips(state);
+    };
+
+    // Paging keeps the filters that are in the URL
+    const goToPage = (page) => {
+        navigate({ ...readStateFromUrl(), page });
         listEl.scrollIntoView({ behavior: 'smooth' });
     };
+
+    // Changing a filter or searching goes back to page 1
+    regionSelect.addEventListener('change', () => navigate(readStateFromControls()));
+    seasonSelect.addEventListener('change', () => navigate(readStateFromControls()));
+
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        navigate(readStateFromControls());
+    });
 
     prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
     nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
 
-    // Browser Back/Forward buttons
-    window.addEventListener('popstate', () => loadPage(readPageFromUrl()));          // Makes the browser's Back and Forward buttons move between pages.
+    // Browser Back/Forward: restore the controls and the results
+    window.addEventListener('popstate', () => {
+        const state = readStateFromUrl();
+        syncControls(state);
+        loadTrips(state);
+    });
 
-    loadPage(readPageFromUrl());
+    const initialState = readStateFromUrl();
+    syncControls(initialState);
+    loadTrips(initialState);
 };
 
 const hookUserDashboard = async () => {
@@ -313,8 +340,6 @@ const hookUserDashboard = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    hookRegionSorter();
-    hookSeasonSorter();
     hookTrainsCatalog();
     hookBookingsAdmin();
     hookTripsList();

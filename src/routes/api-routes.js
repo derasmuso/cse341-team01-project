@@ -102,6 +102,24 @@ const router = Router();
  *           maximum: 50
  *           default: 10
  *         description: Number of trips per page
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *           enum: [central, northern, kansai, hokkaido]
+ *         description: Only return trips in this region
+ *       - in: query
+ *         name: season
+ *         schema:
+ *           type: string
+ *           enum: [spring, summer, autumn, winter]
+ *         description: Only return trips whose best season matches
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive keyword matched against trip names and descriptions
+ * 
  *     responses:
  *       200:
  *         description: One page of trips with pagination metadata
@@ -127,7 +145,7 @@ const router = Router();
  *                   type: integer
  *                   example: 1
  *       400:
- *         description: Invalid page or limit
+ *         description: Invalid region, season, page, or limit
  *         content:
  *           application/json:
  *             schema:
