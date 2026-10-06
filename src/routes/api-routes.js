@@ -19,7 +19,7 @@ import {
     getMyBookings,
 } from '../controllers/bookings.js';
 
-import { requireApiLogin } from '../middleware/auth.js';
+import { requireApiLogin, requireApiRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -370,7 +370,8 @@ router.get('/ticket-classes', (req, res) => {
  * @openapi
  * /api/bookings:
  *   get:
- *     summary: Get all bookings
+ *     summary: Get all bookings (admin only)
+ *     description: Returns all booking records, including passenger details. Requires an administrator role.
  *     tags:
  *       - Bookings
  *     responses:
@@ -391,8 +392,20 @@ router.get('/ticket-classes', (req, res) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Administrator role required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
-router.get('/bookings', getAllBookings);
+router.get('/bookings', requireApiRole('admin'), getAllBookings);
 
 /**
  * @openapi
