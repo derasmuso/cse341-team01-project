@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 import { bookingsAdminPage } from '../controllers/bookings.js';
 import { userDashboardPage } from '../controllers/dashboard.js';
-import { requirePageLogin } from '../middleware/auth.js';
+import { requirePageLogin, requirePageRole } from '../middleware/auth.js';
 
 import { trainsApi, trainsPage } from './trains.js';
 
@@ -43,7 +43,7 @@ router.get('/trains', trainsPage);
 router.get('/api/trains', trainsApi);
 
 // Bookings admin page
-router.get('/bookings-admin', bookingsAdminPage);
+router.get('/bookings-admin', requirePageRole('admin'), bookingsAdminPage);
 
 // EJS routes
 router.use('/trips', ejsRoutes);

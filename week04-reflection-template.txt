@@ -1,0 +1,43 @@
+# Week 04 Reflection
+
+## Selected Feature Set
+
+1. Which feature set were you assigned to complete?
+
+Answer: My Week 04 assigned feature set was Feature Set 4: Protect Bookings Admin. The work protects access to the bookings administration page and all-bookings API so only administrators can view passenger booking records.
+
+## Links
+
+2. Provide your walk-through video link. This video must demonstrate your feature working locally and follow the script in the assignment. (If you created more than one video for your feature set, include them all here.)
+
+Video link: https://www.loom.com/share/f3faf763958547198b91a25d385eb5fe
+
+Resubmission note: The reflection, issue, and pull request links have been updated. The existing walkthrough video is reused as instructed; no re-recording was needed.
+
+3. Provide links to all GitHub Issues you created for your selected feature set.
+
+Issue links: https://github.com/derasmuso/cse341-team01-project/issues/53
+
+4. Provide links to all Pull Requests you created for your selected feature set.
+
+Pull request links: https://github.com/derasmuso/cse341-team01-project/pull/54
+
+## Implementation Reflection
+
+5. Why did you decide to split your Feature Set into multiple GitHub issues or use a single issue?
+
+Answer: I kept the page and API authorization work in one issue because both entry points expose the same booking records and must enforce the same administrator-only policy. Reviewing and testing them together makes it less likely that one route will remain publicly accessible.
+
+6. What is one thing you know after completing the assignment that you did not know beforehand?
+
+Answer: I learned that hiding an admin page in the interface is not sufficient security. The server must independently protect both the page route and the API that returns sensitive booking data, with different responses for signed-out users and users without the admin role.
+
+7. What did you do to make your pull requests clear and ready for teammate review?
+
+Answer: I linked the pull request to its implementation-spec issue, summarized the route protections, documented the 401 and 403 API responses, and listed the authorization tests and verification commands. I also ran the test suite and ESLint before requesting review.
+
+## Team Process
+
+8. What is one thing you can do personally to help your team be more effective next week?
+
+Answer: I can keep my issue and pull request status current, share blockers early, and respond quickly to review feedback so the team can coordinate integration work and avoid delays during the next sprint.

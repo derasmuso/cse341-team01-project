@@ -326,7 +326,8 @@
     },
     "/api/bookings": {
       "get": {
-        "summary": "Get all bookings",
+        "summary": "Get all bookings (admin only)",
+        "description": "Returns all booking records, including passenger details. Requires an administrator role.",
         "tags": [
           "Bookings"
         ],
@@ -345,6 +346,26 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator role required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
