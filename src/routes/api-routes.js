@@ -83,18 +83,73 @@ const router = Router();
  * @openapi
  * /api/trips:
  *   get:
- *     summary: Get all trips
+ *     summary: Get a page of trips
  *     tags:
  *       - Trips
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number to return
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Number of trips per page
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *           enum: [central, northern, kansai, hokkaido]
+ *         description: Only return trips in this region
+ *       - in: query
+ *         name: season
+ *         schema:
+ *           type: string
+ *           enum: [spring, summer, autumn, winter]
+ *         description: Only return trips whose best season matches
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive keyword matched against trip names and descriptions
+ * 
  *     responses:
  *       200:
- *         description: A list of trips
+ *         description: One page of trips with pagination metadata
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Trip'
+ *               type: object
+ *               properties:
+ *                 trips:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Trip'
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 totalTrips:
+ *                   type: integer
+ *                   example: 6
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 1
+ *       400:
+ *         description: Invalid region, season, page, or limit
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Failed to fetch trips
  *         content:
