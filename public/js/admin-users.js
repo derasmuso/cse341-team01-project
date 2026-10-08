@@ -1,4 +1,4 @@
-// src/public/js/admin-users.js
+// public/js/admin-users.js
 
 const usersMap = new Map();
 
@@ -6,19 +6,24 @@ const usersContainer = document.querySelector('#users-container');
 const messageElement = document.querySelector('#users-message');
 const userCardTemplate = document.querySelector('#user-card-template');
 
+
+/***********************************************
+ *   Load users from the server and render them
+ * *********************************************/
+
 async function loadUsers() {
     try {
         const response = await fetch('/api/users');
 
-        if (!response.ok) {
-            throw new Error('Failed to load users.');
-        }
+        const data = await response.json();
 
-        const users = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || data.error || 'Failed to load users.');
+        }
 
         usersMap.clear();
 
-        users.forEach((user) => {
+        data.forEach((user) => {
             usersMap.set(user._id, user);
         });
 
@@ -34,15 +39,20 @@ function renderUsers() {
 
     usersMap.forEach((user) => {
         const card = createUserCard(user);
-
         usersContainer.appendChild(card);
     });
 }
+
+/***********************************************
+ *   User card creation and event handling
+ * *********************************************/
 
 function createUserCard(user) {
     const fragment = userCardTemplate.content.cloneNode(true);
 
     const card = fragment.querySelector('.user-card');
+
+    card.dataset.userId = user._id;
 
     const userName = fragment.querySelector('.user-name');
     const userUsername = fragment.querySelector('.user-username');
@@ -53,63 +63,28 @@ function createUserCard(user) {
     userUsername.textContent = user.username;
     userEmail.textContent = user.email;
     userRole.textContent = user.role === '2'
-    ? 'Admin'
-    : 'Customer';
-
-    const editButton = fragment.querySelector('.edit-user-button');
-    const deleteButton = fragment.querySelector('.delete-user-button');
-    const cancelButton = fragment.querySelector('.cancel-edit-button');
-    const editForm = fragment.querySelector('.user-edit-form');
-
-    editButton.addEventListener('click', () => {
-        startEditing(card, user);
-    });
-
-    cancelButton.addEventListener('click', () => {
-        cancelEditing(card);
-    });
-
-    editForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        await saveUser(card, user);
-    });
-
-    deleteButton.addEventListener('click', async () => {
-        await deleteUser(user._id);
-    });
+        ? 'Admin'
+        : 'Customer';
 
     return card;
 }
 
-/**************************************
- * Starts editing a user card
- * ************************************/
+/***********************************************
+ *   User editing
+ * *********************************************/
 
 function startEditing(card, user) {
     const view = card.querySelector('.user-card-view');
     const form = card.querySelector('.user-edit-form');
 
-    form.querySelector('.edit-display-name').value =
-        user.displayName;
-
-    form.querySelector('.edit-username').value =
-        user.username;
-
-    form.querySelector('.edit-email').value =
-        user.email;
-
-    form.querySelector('.edit-role').value =
-        user.role;
+    form.querySelector('.edit-display-name').value = user.displayName;
+    form.querySelector('.edit-username').value = user.username;
+    form.querySelector('.edit-email').value = user.email;
+    form.querySelector('.edit-role').value = user.role;
 
     view.hidden = true;
     form.hidden = false;
 }
-
-
-/**************************************
- * Cancels editing a user card
- * ************************************/
 
 function cancelEditing(card) {
     const view = card.querySelector('.user-card-view');
@@ -119,10 +94,9 @@ function cancelEditing(card) {
     view.hidden = false;
 }
 
-
-/* **************************************
- * Saves changes to a user
- * ************************************/
+/***********************************************
+ *   User saving
+ * *********************************************/
 
 async function saveUser(card, originalUser) {
     const form = card.querySelector('.user-edit-form');
@@ -137,18 +111,13 @@ async function saveUser(card, originalUser) {
         .value
         .trim();
 
-    const role = form
-        .querySelector('.edit-role')
-        .value;
+    const role = form.querySelector('.edit-role').value;
 
     const updateData = {
         displayName,
         email,
         role
     };
-
-    console.log('Updating user:', originalUser._id);
-    console.log('Update data:', updateData);
 
     try {
         const response = await fetch(
@@ -164,11 +133,9 @@ async function saveUser(card, originalUser) {
 
         const data = await response.json();
 
-        console.log('Update response:', response.status, data);
-
         if (!response.ok) {
             throw new Error(
-                data.message || 'Failed to update user.'
+                data.message || data.error || 'Failed to update user.'
             );
         }
 
@@ -178,14 +145,14 @@ async function saveUser(card, originalUser) {
 
         showMessage('User updated successfully.');
     } catch (error) {
-        console.error('Update error:', error);
         showMessage(error.message);
     }
 }
 
-/**************************************
- * Deletes a user
- * ************************************/
+
+/***********************************************
+ *   User deletion
+ * *********************************************/
 
 async function deleteUser(userId) {
     const user = usersMap.get(userId);
@@ -214,7 +181,7 @@ async function deleteUser(userId) {
 
         if (!response.ok) {
             throw new Error(
-                data.message || 'Failed to delete user.'
+                data.message || data.error || 'Failed to delete user.'
             );
         }
 
@@ -229,17 +196,71 @@ async function deleteUser(userId) {
 }
 
 
-/**************************************
- * Displays a message to the user
- * ************************************/
+/***********************************************
+ *   Event listeners for user actions
+ * *********************************************/
+
+usersContainer.addEventListener('click', async (event) => {
+    const button = event.target.closest('button');
+
+    if (!button || !usersContainer.contains(button)) {
+        return;
+    }
+
+    const card = button.closest('.user-card');
+
+    if (!card) {
+        return;
+    }
+
+    const userId = card.dataset.userId;
+    const user = usersMap.get(userId);
+
+    if (!user) {
+        return;
+    }
+
+    if (button.classList.contains('edit-user-button')) {
+        startEditing(card, user);
+        return;
+    }
+
+    if (button.classList.contains('cancel-edit-button')) {
+        cancelEditing(card);
+        return;
+    }
+
+    if (button.classList.contains('delete-user-button')) {
+        await deleteUser(userId);
+    }
+});
+
+usersContainer.addEventListener('submit', async (event) => {
+    if (!event.target.classList.contains('user-edit-form')) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const form = event.target;
+    const card = form.closest('.user-card');
+
+    if (!card) {
+        return;
+    }
+
+    const userId = card.dataset.userId;
+    const user = usersMap.get(userId);
+
+    if (!user) {
+        return;
+    }
+
+    await saveUser(card, user);
+});
 
 function showMessage(message) {
     messageElement.textContent = message;
 }
-
-
-/**************************************
- * Load users when the page opens
- * ************************************/
 
 loadUsers();

@@ -19,9 +19,245 @@ import {
     getMyBookings,
 } from '../controllers/bookings.js';
 
+import {
+    getUsers,
+    updateUserById,
+    deleteUserById,
+} from '../controllers/users.js';
+
 import { requireApiLogin } from '../middleware/auth.js';
 
 const router = Router();
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Unique user identifier.
+ *           example: 68c123456789abcdef123456
+ *         displayName:
+ *           type: string
+ *           description: User's display name.
+ *           example: Yuki Tanaka
+ *         username:
+ *           type: string
+ *           description: User's unique username.
+ *           example: yuki.tanaka
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address.
+ *           example: yuki.tanaka@example.com
+ *         role:
+ *           type: string
+ *           description: User's role ID.
+ *           enum:
+ *             - "1"
+ *             - "2"
+ *           example: "1"
+ *       required:
+ *         - _id
+ *         - displayName
+ *         - username
+ *         - email
+ *         - role
+ */
+
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: Get users
+ *     description: |
+ *       Returns user information for the authenticated user.
+ *       Administrators receive all users, while regular users receive
+ *       only their own user information.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Authentication required
+ *       404:
+ *         description: The authenticated user was not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: Failed to retrieve users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Failed to retrieve users
+ */
+router.get('/users', requireApiLogin, getUsers);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update a user
+ *     description: |
+ *       Updates an authenticated user's information.
+ *       Regular users can update only their own information and cannot
+ *       change their role. Administrators can update any user.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's MongoDB ObjectId.
+ *         schema:
+ *           type: string
+ *         example: 68c123456789abcdef123456
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 example: Yuki Tanaka
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: yuki.tanaka@example.com
+ *               role:
+ *                 type: string
+ *                 enum:
+ *                   - "1"
+ *                   - "2"
+ *                 example: "1"
+ *     responses:
+ *       200:
+ *         description: User updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID or user data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: The authenticated user is not authorized to update this user or change the user's role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to update user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.put('/users/:id', requireApiLogin, updateUserById);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: |
+ *       Deletes an authenticated user's account.
+ *       Regular users can delete only their own account.
+ *       Administrators can delete any user.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's MongoDB ObjectId.
+ *         schema:
+ *           type: string
+ *         example: 68c123456789abcdef123456
+ *     responses:
+ *       200:
+ *         description: User deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: The authenticated user is not authorized to delete this user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to delete user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete('/users/:id', requireApiLogin, deleteUserById);
 
 /**
  * @openapi
@@ -119,7 +355,7 @@ const router = Router();
  *         schema:
  *           type: string
  *         description: Case-insensitive keyword matched against trip names and descriptions
- * 
+ *
  *     responses:
  *       200:
  *         description: One page of trips with pagination metadata
@@ -583,10 +819,3 @@ router.get('/bookings', getAllBookings);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error while fetching bookings.
- */
-router.get('/bookings/mine', requireApiLogin, getMyBookings);
-
-export default router;
