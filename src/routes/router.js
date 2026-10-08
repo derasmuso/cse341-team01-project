@@ -7,7 +7,9 @@ import { bookingsAdminPage } from '../controllers/bookings.js';
 import { userDashboardPage } from '../controllers/dashboard.js';
 import { requirePageLogin } from '../middleware/auth.js';
 
-import { trainsApi, trainsPage } from './trains.js';
+import { trainsPage } from './trains.js';
+
+import { getAllTrains } from '../controllers/trains.js';
 
 import ejsRoutes from './ejs-routes.js';
 
@@ -40,7 +42,7 @@ router.get('/about', aboutPage);
 router.get('/trains', trainsPage);
 
 // Trains API
-router.get('/api/trains', trainsApi);
+router.get('/api/trains', getAllTrains);
 
 // Bookings admin page
 router.get('/bookings', bookingsAdminPage);

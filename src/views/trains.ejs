@@ -1,3 +1,4 @@
+
 <%- include('./partials/header') %>
 
 <section class="trains-hero">
@@ -8,7 +9,19 @@
 </section>
 
 <section class="trains-catalog">
+
+    <div class="trains-search">
+        <label for="trains-search-input">Search trains</label>
+        <input
+            id="trains-search-input"
+            type="search"
+            placeholder="Search by name, operator, type, or power source"
+        >
+        <button id="trains-search-button" type="button">Search</button>
+    </div>
+
     <div class="trains-state" id="trains-loading">Loading trains...</div>
+
     <div class="trains-state trains-error" id="trains-error" hidden></div>
 
     <div class="trains-grid" id="trains-list"></div>
@@ -31,14 +44,17 @@
                     <dt>Type</dt>
                     <dd data-field="type"></dd>
                 </div>
+
                 <div class="spec-item">
                     <dt>Top Speed</dt>
                     <dd data-field="speed"></dd>
                 </div>
+
                 <div class="spec-item">
                     <dt>Capacity</dt>
                     <dd data-field="seats"></dd>
                 </div>
+
                 <div class="spec-item">
                     <dt>Power</dt>
                     <dd data-field="power"></dd>
@@ -51,6 +67,14 @@
             </p>
         </article>
     </template>
+
+    <div class="trains-pagination">
+        <button id="trains-prev" type="button" disabled>Previous</button>
+        <span id="trains-page">Page 1</span>
+        <button id="trains-next" type="button" disabled>Next</button>
+    </div>
+
 </section>
 
 <%- include('./partials/footer') %>
+

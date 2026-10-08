@@ -18,6 +18,10 @@ import {
     getAllBookings,
     getMyBookings,
 } from '../controllers/bookings.js';
+import {
+    getAllTrains,
+    getTrainById,
+} from '../controllers/trains.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
 
