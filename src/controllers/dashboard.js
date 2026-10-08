@@ -1,5 +1,7 @@
+// src/controllers/dashboard.js
+
 export function dashboardPage(req, res) {
-    if (req.user.role === 'admin') {
+    if (req.user.role === '2') {
         return res.redirect('/admin/dashboard');
     }
 
@@ -13,8 +15,3 @@ export function profilePage(req, res) {
         title: 'My Profile'
     });
 }
-
-export function userDashboardPage(req, res) {
-  res.render('user/dashboard', { title: 'My Dashboard' });
-}
-

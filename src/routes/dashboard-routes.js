@@ -2,9 +2,8 @@
 
 import { Router } from 'express';
 
-import { 
-    requirePageLogin,
-    requirePageRole
+import {
+    requirePageLogin
 } from '../middleware/auth.js';
 
 import {
@@ -12,27 +11,18 @@ import {
     profilePage
 } from '../controllers/dashboard.js';
 
-
 const router = Router();
 
-// Dashboard routes
 router.get(
-    '/dashboard', 
-    requirePageLogin, 
-    (req, res, next) => {
-        if (req.user.role === 'admin') {
-            return res.redirect('/admin/dashboard');
-        }
-        return next();
-    },
+    '/dashboard',
+    requirePageLogin,
     dashboardPage
 );
 
 router.get(
-    '/profile', 
-    requirePageLogin, 
+    '/profile',
+    requirePageLogin,
     profilePage
 );
-
 
 export default router;
