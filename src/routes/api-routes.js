@@ -819,3 +819,11 @@ router.get('/bookings', getAllBookings);
  *         content:
  *           application/json:
  *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ */
+
+export default router;

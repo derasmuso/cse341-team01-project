@@ -18,24 +18,32 @@ async function loadUsers() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.message || data.error || 'Failed to load users.');
+            throw new Error(
+                data.message ||
+                data.error ||
+                'Failed to load users.'
+            );
+        }
+
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid users response.');
         }
 
         usersMap.clear();
 
         data.forEach((user) => {
-            usersMap.set(user._id, user);
+            usersMap.set(String(user._id), user);
         });
 
         renderUsers();
     } catch (error) {
         showMessage(error.message);
-        usersContainer.textContent = '';
+        usersContainer.replaceChildren();
     }
 }
 
 function renderUsers() {
-    usersContainer.textContent = '';
+    usersContainer.replaceChildren();
 
     usersMap.forEach((user) => {
         const card = createUserCard(user);
@@ -43,8 +51,9 @@ function renderUsers() {
     });
 }
 
+
 /***********************************************
- *   User card creation and event handling
+ *   User card creation
  * *********************************************/
 
 function createUserCard(user) {
@@ -52,7 +61,7 @@ function createUserCard(user) {
 
     const card = fragment.querySelector('.user-card');
 
-    card.dataset.userId = user._id;
+    card.dataset.userId = String(user._id);
 
     const userName = fragment.querySelector('.user-name');
     const userUsername = fragment.querySelector('.user-username');
@@ -62,12 +71,14 @@ function createUserCard(user) {
     userName.textContent = user.displayName;
     userUsername.textContent = user.username;
     userEmail.textContent = user.email;
+
     userRole.textContent = user.role === '2'
         ? 'Admin'
         : 'Customer';
 
     return card;
 }
+
 
 /***********************************************
  *   User editing
@@ -77,10 +88,26 @@ function startEditing(card, user) {
     const view = card.querySelector('.user-card-view');
     const form = card.querySelector('.user-edit-form');
 
-    form.querySelector('.edit-display-name').value = user.displayName;
-    form.querySelector('.edit-username').value = user.username;
-    form.querySelector('.edit-email').value = user.email;
-    form.querySelector('.edit-role').value = user.role;
+    form.querySelector('.edit-display-name').value =
+        user.displayName;
+
+    /*
+     * Username is not editable.
+     * It is displayed in the form for reference only.
+     */
+    form.querySelector('.edit-username').value =
+        user.username;
+
+    form.querySelector('.edit-email').value =
+        user.email;
+
+    /*
+     * The role field is populated for administrators.
+     * Server-side authorization remains responsible for
+     * preventing unauthorized role changes.
+     */
+    form.querySelector('.edit-role').value =
+        user.role;
 
     view.hidden = true;
     form.hidden = false;
@@ -93,6 +120,7 @@ function cancelEditing(card) {
     form.hidden = true;
     view.hidden = false;
 }
+
 
 /***********************************************
  *   User saving
@@ -111,8 +139,17 @@ async function saveUser(card, originalUser) {
         .value
         .trim();
 
-    const role = form.querySelector('.edit-role').value;
+    const role = form
+        .querySelector('.edit-role')
+        .value;
 
+    /*
+     * Username is intentionally excluded because it is
+     * not editable.
+     *
+     * The server must enforce whether the authenticated
+     * user is allowed to change the role.
+     */
     const updateData = {
         displayName,
         email,
@@ -125,7 +162,8 @@ async function saveUser(card, originalUser) {
             {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(updateData)
             }
@@ -135,12 +173,21 @@ async function saveUser(card, originalUser) {
 
         if (!response.ok) {
             throw new Error(
-                data.message || data.error || 'Failed to update user.'
+                data.message ||
+                data.error ||
+                'Failed to update user.'
             );
         }
 
-        usersMap.set(data._id, data);
+        /*
+         * Store the updated user in the local Map.
+         */
+        usersMap.set(String(data._id), data);
 
+        /*
+         * Re-render the current list without reloading
+         * the page.
+         */
         renderUsers();
 
         showMessage('User updated successfully.');
@@ -173,7 +220,10 @@ async function deleteUser(userId) {
         const response = await fetch(
             `/api/users/${encodeURIComponent(userId)}`,
             {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
             }
         );
 
@@ -181,12 +231,20 @@ async function deleteUser(userId) {
 
         if (!response.ok) {
             throw new Error(
-                data.message || data.error || 'Failed to delete user.'
+                data.message ||
+                data.error ||
+                'Failed to delete user.'
             );
         }
 
+        /*
+         * Remove the deleted user from the local Map.
+         */
         usersMap.delete(userId);
 
+        /*
+         * Update the DOM without reloading the page.
+         */
         renderUsers();
 
         showMessage('User deleted successfully.');
@@ -197,7 +255,7 @@ async function deleteUser(userId) {
 
 
 /***********************************************
- *   Event listeners for user actions
+ *   Event delegation for user actions
  * *********************************************/
 
 usersContainer.addEventListener('click', async (event) => {
@@ -235,6 +293,11 @@ usersContainer.addEventListener('click', async (event) => {
     }
 });
 
+
+/***********************************************
+ *   Event delegation for edit forms
+ * *********************************************/
+
 usersContainer.addEventListener('submit', async (event) => {
     if (!event.target.classList.contains('user-edit-form')) {
         return;
@@ -259,8 +322,18 @@ usersContainer.addEventListener('submit', async (event) => {
     await saveUser(card, user);
 });
 
+
+/***********************************************
+ *   Status messages
+ * *********************************************/
+
 function showMessage(message) {
     messageElement.textContent = message;
 }
+
+
+/***********************************************
+ *   Initialize page
+ * *********************************************/
 
 loadUsers();

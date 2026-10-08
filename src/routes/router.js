@@ -12,7 +12,6 @@ import { trainsApi, trainsPage } from './trains.js';
 import ejsRoutes from './ejs-routes.js';
 
 import apiRoutes from './api-routes.js';
-
 import authRoutes from './auth-routes.js';
 import dashboardRoutes from './dashboard-routes.js';
 import adminRoutes from './admin-routes.js';
