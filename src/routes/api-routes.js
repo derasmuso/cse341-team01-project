@@ -18,6 +18,10 @@ import {
     getAllBookings,
     getMyBookings,
 } from '../controllers/bookings.js';
+import {
+    getAllTrains,
+    getTrainById,
+} from '../controllers/trains.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
 
@@ -533,5 +537,8 @@ router.get('/bookings', getAllBookings);
  *         description: Server error while fetching bookings.
  */
 router.get('/bookings/mine', requireApiLogin, getMyBookings);
+
+router.get('/trains', getAllTrains);
+router.get('/trains/:id', getTrainById);
 
 export default router;

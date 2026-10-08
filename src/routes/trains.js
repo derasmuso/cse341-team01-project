@@ -5,12 +5,32 @@ const trainsPage = (req, res) => {
 };
 
 const trainsApi = async (req, res, next) => {
-  try {
-    const trains = await getDb().collection('trains').find({}).toArray();
-    return res.json({ trains });
-  } catch (error) {
-    return next(error);
-  }
+    try {
+        const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const collection = getDb().collection('trains');
+
+        const [trains, totalItems] = await Promise.all([
+            collection.find({}).skip(skip).limit(limit).toArray(),
+            collection.countDocuments({})
+        ]);
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return res.json({
+            trains,
+            meta: {
+                page,
+                limit,
+                totalItems,
+                totalPages
+            }
+        });
+    } catch (error) {
+        return next(error);
+    }
 };
 
 export { trainsApi, trainsPage };
