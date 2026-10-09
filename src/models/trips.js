@@ -9,12 +9,31 @@ export async function getAllTrips() {
 }
 
 export async function updateTrip(id, updates) {
+    const allowedFields = [
+        "name",
+        "description",
+        "price",
+        "image",
+        "duration",
+        "distance",
+        "difficulty",
+        "startStationId",
+        "endStationId",
+    ];
+
+    const safeUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([key]) =>
+            allowedFields.includes(key)
+        )
+    );
+
     return Trip.findOneAndUpdate(
         { id },
-        updates,
+        { $set: safeUpdates },
         { new: true, runValidators: true }
     ).lean();
 }
+
 
 export async function deleteTrip(id) {
     return Trip.findOneAndDelete({ id }).lean();
