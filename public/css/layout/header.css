@@ -93,9 +93,20 @@ header {
                         border-bottom: none;
                     }
 
-                    a {
+                    form {
+                        margin: 0;
+                    }
+
+                    a,
+                    button {
                         display: block;
+                        width: 100%;
+                        text-align: left;
+                        font-family: inherit;
+                        cursor: pointer;
                         padding: var(--space-md) var(--space-lg);
+                        background: none;
+                        border: none;
                         color: var(--clr-text-primary);
                         text-decoration: none;
                         font-size: var(--font-size-md);
@@ -164,8 +175,11 @@ header {
                         border-bottom: none;
                         margin: 0;
 
-                        a {
+                        a,
+                        button {
                             display: inline-block;
+                            width: auto;
+                            text-align: center;
                             padding: calc(var(--space-sm) / 2) var(--space-md);
                             border: 1px solid var(--clr-border);
                             border-radius: var(--radius-md);

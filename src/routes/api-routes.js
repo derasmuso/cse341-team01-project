@@ -4,15 +4,30 @@ import { Router } from 'express';
 
 import {
     getAllTicketClasses,
-    getTicketClassesForDay
+    getTicketClassesForDay,
 } from '../controllers/ticket-classes.js';
 
+import { getAllTrips, getTripById } from '../controllers/trips.js';
+
 import {
+    getSchedulesForTrip,
+    getSchedulesForTripAndMonth,
+} from '../controllers/schedules.js';
+
+import {
+
     getAllTrips,
     getTripById,
     updateTrip,
     deleteTrip
 } from '../controllers/trips.js';
+
+    getAllBookings,
+    getMyBookings,
+} from '../controllers/bookings.js';
+
+import { requireApiLogin } from '../middleware/auth.js';
+
 
 import { requireApiRole } from '../middleware/auth.js';
 
@@ -78,18 +93,73 @@ const router = Router();
  * @openapi
  * /api/trips:
  *   get:
- *     summary: Get all trips
+ *     summary: Get a page of trips
  *     tags:
  *       - Trips
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number to return
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Number of trips per page
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *           enum: [central, northern, kansai, hokkaido]
+ *         description: Only return trips in this region
+ *       - in: query
+ *         name: season
+ *         schema:
+ *           type: string
+ *           enum: [spring, summer, autumn, winter]
+ *         description: Only return trips whose best season matches
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive keyword matched against trip names and descriptions
+ * 
  *     responses:
  *       200:
- *         description: A list of trips
+ *         description: One page of trips with pagination metadata
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Trip'
+ *               type: object
+ *               properties:
+ *                 trips:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Trip'
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 totalTrips:
+ *                   type: integer
+ *                   example: 6
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 1
+ *       400:
+ *         description: Invalid region, season, page, or limit
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Failed to fetch trips
  *         content:
@@ -98,6 +168,85 @@ const router = Router();
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips', getAllTrips);
+
+/**
+ * @openapi
+ * /api/trips/{id}/schedules:
+ *   get:
+ *     summary: Get schedules for a trip
+ *     description: Returns all schedules for a trip, or schedules when the trip operates in the specified month.
+ *     tags:
+ *       - Schedules
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The trip's custom ID.
+ *         schema:
+ *           type: string
+ *         example: alpine-panorama
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         description: Month number used to filter schedules. Must be an integer from 1 to 12.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         example: 6
+ *     responses:
+ *       200:
+ *         description: Schedules retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   tripId:
+ *                     type: string
+ *                     example: alpine-panorama
+ *                   departureTime:
+ *                     type: string
+ *                     example: "08:30"
+ *                   arrivalTime:
+ *                     type: string
+ *                     example: "13:00"
+ *                   daysOfWeek:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example:
+ *                       - monday
+ *                       - wednesday
+ *                       - friday
+ *                   status:
+ *                     type: boolean
+ *                     example: true
+ *       400:
+ *         description: Invalid month parameter.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to fetch schedules.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/trips/:id/schedules', (req, res) => {
+    if (req.query.month !== undefined) {
+        return getSchedulesForTripAndMonth(req, res);
+    }
+
+    return getSchedulesForTrip(req, res);
+});
 
 /**
  * @openapi
@@ -246,5 +395,220 @@ router.get('/ticket-classes', (req, res) => {
 
     return getAllTicketClasses(req, res);
 });
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Passenger:
+ *       type: object
+ *       properties:
+ *         firstName:
+ *           type: string
+ *           example: Yuki
+ *         lastName:
+ *           type: string
+ *           example: Tanaka
+ *         email:
+ *           type: string
+ *           example: yuki.tanaka@example.com
+ *         phone:
+ *           type: string
+ *           example: "+81 90-1234-5678"
+ *     Booking:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique booking confirmation code.
+ *           example: JR4F9X2A1B
+ *         scheduleId:
+ *           type: string
+ *           example: "12"
+ *         tripId:
+ *           type: string
+ *           example: "3"
+ *         ticketClass:
+ *           type: string
+ *           example: standard
+ *         selectedDay:
+ *           type: string
+ *           example: Monday
+ *         passengers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Passenger'
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *     PageMeta:
+ *       type: object
+ *       description: Information about the query that produced a page of results.
+ *       properties:
+ *         totalItems:
+ *           type: integer
+ *           description: Total number of items matching the query across all pages.
+ *           example: 87
+ *         totalPages:
+ *           type: integer
+ *           example: 9
+ *         page:
+ *           type: integer
+ *           description: The page that was returned.
+ *           example: 1
+ *         limit:
+ *           type: integer
+ *           description: Maximum number of items per page.
+ *           example: 10
+ *         sortBy:
+ *           type: string
+ *           example: createdAt
+ *         sortOrder:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: desc
+ *         filters:
+ *           type: object
+ *           description: The filters applied to the query. Only filters that were supplied are included, so the object is empty when no filters are active.
+ *           properties:
+ *             ticketClass:
+ *               type: string
+ *               example: premium
+ *             startDate:
+ *               type: string
+ *               example: "2026-01-01"
+ *             endDate:
+ *               type: string
+ *               example: "2026-03-31"
+ */
+
+/**
+ * @openapi
+ * /api/bookings:
+ *   get:
+ *     summary: Get a page of bookings
+ *     description: Returns one page of bookings plus metadata about the query. Bookings can be filtered by ticket class and by booking date (createdAt) range, and the filters apply before paging. Results are sorted by booking date, newest first, unless sortBy and sortOrder say otherwise.
+ *     tags:
+ *       - Bookings
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number to return, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of bookings per page.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         example: 10
+ *       - in: query
+ *         name: sortBy
+ *         required: false
+ *         description: Booking field to sort by.
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, ticketClass, selectedDay]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         required: false
+ *         description: Sort direction.
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *       - in: query
+ *         name: ticketClass
+ *         required: false
+ *         description: Only return bookings for this ticket class.
+ *         schema:
+ *           type: string
+ *           enum: [standard, premium, first]
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         description: Only return bookings made on or after this date (YYYY-MM-DD, UTC).
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         description: Only return bookings made on or before this date (YYYY-MM-DD, UTC). The whole day is included. Must not be earlier than startDate.
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-03-31"
+ *     responses:
+ *       200:
+ *         description: A page of bookings and metadata about the query. A page past the last one returns an empty bookings array.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Booking'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PageMeta'
+ *       400:
+ *         description: A paging, sorting or filter query parameter is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: limit must be between 1 and 100
+ *       500:
+ *         description: Failed to fetch bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/bookings', getAllBookings);
+
+/**
+ * @openapi
+ * /api/bookings/mine:
+ *   get:
+ *     summary: Get the signed-in user's bookings
+ *     description: Returns bookings where the signed-in user's email matches one of the passengers.
+ *     tags:
+ *       - Bookings
+ *     responses:
+ *       200:
+ *         description: The user's bookings, newest first.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Booking'
+ *       401:
+ *         description: Not signed in, or the session is out of date.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error while fetching bookings.
+ */
+router.get('/bookings/mine', requireApiLogin, getMyBookings);
 
 export default router;
