@@ -48,10 +48,7 @@ export async function getAllTrips(req, res) {
 export async function updateTrip(req, res) {
     try {
         const { id } = req.params;
-        const {
-            scheduleIds,
-            ...tripUpdates
-        } = req.body;
+        const { scheduleIds, ...tripUpdates } = req.body;
 
         const updatedTrip = await updateTripModel(
             id,
@@ -64,41 +61,54 @@ export async function updateTrip(req, res) {
             });
         }
 
-        const selectedScheduleIds = Array.isArray(scheduleIds)
-            ? scheduleIds.map(Number)
-            : [];
+        let responseScheduleIds;
 
-        const currentSchedules = await getSchedulesByTripId(id);
+        // Only synchronize schedules when scheduleIds is provided
+        // as an array in the request body.
+        if (Array.isArray(scheduleIds)) {
+            const selectedScheduleIds = scheduleIds.map(Number);
 
-        const currentScheduleIds = currentSchedules.map(
-            (schedule) => schedule.id
-        );
+            const currentSchedules = await getSchedulesByTripId(id);
 
-        // Remove schedules that are no longer selected.
-        for (const scheduleId of currentScheduleIds) {
-            if (!selectedScheduleIds.includes(scheduleId)) {
+            const currentScheduleIds = currentSchedules.map(
+                (schedule) => schedule.id
+            );
+
+            // Remove schedules that are no longer selected.
+            for (const scheduleId of currentScheduleIds) {
+                if (!selectedScheduleIds.includes(scheduleId)) {
+                    await getDb()
+                        .collection("schedules")
+                        .updateOne(
+                            { id: scheduleId, tripId: id },
+                            { $set: { tripId: null } }
+                        );
+                }
+            }
+
+            // Assign selected schedules to this trip.
+            for (const scheduleId of selectedScheduleIds) {
                 await getDb()
                     .collection("schedules")
                     .updateOne(
-                        { id: scheduleId, tripId: id },
-                        { $set: { tripId: null } }
+                        { id: scheduleId },
+                        { $set: { tripId: id } }
                     );
             }
-        }
 
-        // Assign selected schedules to this trip.
-        for (const scheduleId of selectedScheduleIds) {
-            await getDb()
-                .collection("schedules")
-                .updateOne(
-                    { id: scheduleId },
-                    { $set: { tripId: id } }
-                );
+            responseScheduleIds = selectedScheduleIds;
+        } else {
+            // Preserve existing assignments when scheduleIds is omitted.
+            const currentSchedules = await getSchedulesByTripId(id);
+
+            responseScheduleIds = currentSchedules.map(
+                (schedule) => schedule.id
+            );
         }
 
         return res.status(200).json({
             ...updatedTrip,
-            scheduleIds: selectedScheduleIds,
+            scheduleIds: responseScheduleIds,
         });
     } catch (error) {
         console.error("Error updating trip:", error);
@@ -108,6 +118,7 @@ export async function updateTrip(req, res) {
         });
     }
 }
+
 
 export async function deleteTrip(req, res) {
     try {
