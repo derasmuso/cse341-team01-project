@@ -85,8 +85,7 @@ export async function updateUserById(req, res, next) {
     }
 
     /*
-     * Username and all other unspecified fields are not
-     * allowed to be updated.
+     * Only explicitly allowed fields can be updated.
      */
     if (fields.some((field) => !allowedUpdateFields.includes(field))) {
         return res.status(400).json({
@@ -168,11 +167,40 @@ export async function updateUserById(req, res, next) {
             updateData.role = role;
         }
 
+        //For testing purposes
+        //Comment after test passes
+        // console.log("Logged-in user ID:", req.user.id);
+        // console.log("Requested user ID:", id);
+        // console.log("Submitted email:", req.body.email);
+
+
         const user = await updateUser(id, updateData);
 
         if (!user) {
             return res.status(404).json({
                 message: "User not found"
+            });
+        }
+
+        /*
+         * Synchronize the session when the logged-in user
+         * updates their own account.
+         */
+        if (
+            String(req.user.id) === String(id) &&
+            req.session.user
+        ) {
+            req.session.user.displayName = user.displayName;
+            req.session.user.email = user.email;
+
+            await new Promise((resolve, reject) => {
+                req.session.save((error) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                });
             });
         }
 

@@ -1,11 +1,74 @@
 <%- include('../partials/header') %>
 
-<h1>Admin Dashboard</h1>
-<p>Welcome to the Admin Dashboard.</p>
+    <div class="dashboard-layout">
 
-<nav>
-    <a href="/profile">My Profile</a>
-    <a href="/admin/users">Manage Users</a>
-</nav>
+        <aside class="dashboard-sidebar">
+            <div class="dashboard-sidebar-header">
+                <h2>Kizuna Railway</h2>
+            </div>
 
-<%- include('../partials/footer') %>
+            <nav class="dashboard-nav">
+                <a class="dashboard-nav-link active" href="/dashboard">
+                    Admin Dashboard
+                </a>
+
+                <a class="dashboard-nav-link" href="/profile">
+                    My Profile
+                </a>
+                <a class="dashboard-nav-link" href="/admin/users">
+                    Users Management
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+
+            <section class="dashboard-hero">
+                <h1>Welcome, <%= user.displayName %>
+                </h1>
+                <p>Here are the trips you are booked on.</p>
+            </section>
+
+            <section class="dashboard-bookings">
+                <h2>My bookings</h2>
+
+                <div class="dashboard-state" id="my-bookings-loading">
+                    Loading your bookings...
+                </div>
+
+                <div class="dashboard-state dashboard-error" id="my-bookings-error" hidden></div>
+
+                <div class="dashboard-state" id="my-bookings-empty" hidden>
+                    You are not a passenger on any bookings yet.
+                </div>
+
+                <table class="dashboard-table" id="my-bookings-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Confirmation #</th>
+                            <th>Ticket Class</th>
+                            <th>Travel Day</th>
+                            <th>Passengers</th>
+                            <th>Booked On</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="my-bookings-list"></tbody>
+                </table>
+
+                <template id="my-booking-row-template">
+                    <tr>
+                        <td data-field="id"></td>
+                        <td data-field="ticketClass"></td>
+                        <td data-field="selectedDay"></td>
+                        <td data-field="passengers"></td>
+                        <td data-field="createdAt"></td>
+                    </tr>
+                </template>
+            </section>
+
+        </main>
+
+    </div>
+
+    <%- include('../partials/footer') %>

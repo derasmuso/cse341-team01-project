@@ -47,12 +47,23 @@
 
                 <label>
                     Username
-                    <input type="text" name="username" class="edit-username" readonly aria-disabled="true" aria-readonly="true">
+                    <input type="text" name="username" class="edit-username" readonly aria-disabled="true"
+                        aria-readonly="true">
                 </label>
 
                 <label>
                     Email
                     <input type="email" name="email" class="edit-email" required>
+                </label>
+
+                <label>
+                    New Password
+                    <input type="password" name="password" class="edit-password" minlength="8"
+                        autocomplete="new-password" placeholder="Leave blank to keep current password">
+                    <small>
+                        Leave blank to keep the current password.
+                        Enter at least 8 characters to change it.
+                    </small>
                 </label>
 
                 <label>

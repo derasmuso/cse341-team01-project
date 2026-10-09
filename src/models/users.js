@@ -62,24 +62,42 @@ export async function getUserById(id) {
 
 // Update a user by ID
 export async function updateUser(id, data) {
-  const updateData = { ...data };
+    const updateData = { ...data };
 
-  if (updateData.password !== undefined) {
-    updateData.passwordHash = await bcrypt.hash(updateData.password, 12);
+    if (updateData.email !== undefined) {
+        updateData.email = updateData.email.trim().toLowerCase();
 
-    delete updateData.password;
-  }
+        const existingUser = await User.findOne({
+            email: updateData.email,
+            _id: { $ne: id }
+        }).select("_id").lean();
 
-  return User.findByIdAndUpdate(
-      id,
-      updateData,
-      {
-          new: true,
-          runValidators: true
-      }
-  )
-      .select("-passwordHash")
-      .lean();
+        if (existingUser) {
+            const error = new Error("Email is already in use");
+            error.code = 11000;
+            throw error;
+        }
+    }
+
+    if (updateData.password !== undefined) {
+        updateData.passwordHash = await bcrypt.hash(
+            updateData.password,
+            12
+        );
+
+        delete updateData.password;
+    }
+
+    return User.findOneAndUpdate(
+        { _id: id },
+        { $set: updateData },
+        {
+            returnDocument: "after",
+            runValidators: true
+        }
+    )
+        .select("-passwordHash")
+        .lean();
 }
 
 // Delete a user by ID
