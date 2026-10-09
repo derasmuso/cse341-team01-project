@@ -8,6 +8,37 @@ export async function getAllTrips() {
   return Trip.find({}).lean();
 }
 
+
+export async function updateTrip(id, updates) {
+    const allowedFields = [
+        "name",
+        "description",
+        "price",
+        "image",
+        "duration",
+        "distance",
+        "difficulty",
+        "startStationId",
+        "endStationId",
+    ];
+
+    const safeUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([key]) =>
+            allowedFields.includes(key)
+        )
+    );
+
+    return Trip.findOneAndUpdate(
+        { id },
+        { $set: safeUpdates },
+        { new: true, runValidators: true }
+    ).lean();
+}
+
+
+export async function deleteTrip(id) {
+    return Trip.findOneAndDelete({ id }).lean();
+}
 // Escapes regex characters so a search like "(" or ".*" matches as plain text
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -46,3 +77,4 @@ export async function getTripsPage({ page, limit, region, season, search }) {
 
 export const TRIP_REGIONS = Trip.schema.path('region').enumValues;
 export const TRIP_SEASONS = Trip.schema.path('bestSeason').enumValues;
+
