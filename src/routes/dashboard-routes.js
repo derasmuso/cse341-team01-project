@@ -2,27 +2,14 @@
 
 import { Router } from 'express';
 
-import {
-    requirePageLogin
-} from '../middleware/auth.js';
+import { requirePageLogin } from '../middleware/auth.js';
 
-import {
-    dashboardPage,
-    profilePage
-} from '../controllers/dashboard.js';
+import { dashboardPage, profilePage } from '../controllers/dashboard.js';
 
 const router = Router();
 
-router.get(
-    '/dashboard',
-    requirePageLogin,
-    dashboardPage
-);
+router.get('/dashboard', requirePageLogin, dashboardPage);
 
-router.get(
-    '/profile',
-    requirePageLogin,
-    profilePage
-);
+router.get('/profile', requirePageLogin, profilePage);
 
 export default router;

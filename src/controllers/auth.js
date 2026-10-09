@@ -67,8 +67,7 @@ export async function login(req, res, next) {
   try {
     const user = await findUserByEmail(email);
 
-    const isValid =
-      user && (await verifyPassword(password, user.passwordHash));
+    const isValid = user && (await verifyPassword(password, user.passwordHash));
 
     if (!isValid) {
       return res.status(401).render('auth/login', {

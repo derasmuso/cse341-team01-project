@@ -4,7 +4,6 @@ import bcrypt from 'bcrypt';
 import User from './schemas/users.js';
 import { getRoleByName } from './roles.js';
 
-
 /*******************************************
  * Create a new user
  *******************************************/
@@ -38,9 +37,8 @@ export async function findUserByEmail(email) {
 }
 
 export async function verifyPassword(password, passwordHash) {
-    return bcrypt.compare(password, passwordHash);
+  return bcrypt.compare(password, passwordHash);
 }
-
 
 /*******************************************
  * Manage users
@@ -48,62 +46,54 @@ export async function verifyPassword(password, passwordHash) {
 
 // Get all users
 export async function getAllUsers() {
-    return User.find()
-        .select("-passwordHash")
-        .lean();
+  return User.find().select('-passwordHash').lean();
 }
 
 // Get a user by ID
 export async function getUserById(id) {
-    return User.findById(id)
-        .select("-passwordHash")
-        .lean();
+  return User.findById(id).select('-passwordHash').lean();
 }
 
 // Update a user by ID
 export async function updateUser(id, data) {
-    const updateData = { ...data };
+  const updateData = { ...data };
 
-    if (updateData.email !== undefined) {
-        updateData.email = updateData.email.trim().toLowerCase();
+  if (updateData.email !== undefined) {
+    updateData.email = updateData.email.trim().toLowerCase();
 
-        const existingUser = await User.findOne({
-            email: updateData.email,
-            _id: { $ne: id }
-        }).select("_id").lean();
+    const existingUser = await User.findOne({
+      email: updateData.email,
+      _id: { $ne: id },
+    })
+      .select('_id')
+      .lean();
 
-        if (existingUser) {
-            const error = new Error("Email is already in use");
-            error.code = 11000;
-            throw error;
-        }
+    if (existingUser) {
+      const error = new Error('Email is already in use');
+      error.code = 11000;
+      throw error;
     }
+  }
 
-    if (updateData.password !== undefined) {
-        updateData.passwordHash = await bcrypt.hash(
-            updateData.password,
-            12
-        );
+  if (updateData.password !== undefined) {
+    updateData.passwordHash = await bcrypt.hash(updateData.password, 12);
 
-        delete updateData.password;
+    delete updateData.password;
+  }
+
+  return User.findOneAndUpdate(
+    { _id: id },
+    { $set: updateData },
+    {
+      returnDocument: 'after',
+      runValidators: true,
     }
-
-    return User.findOneAndUpdate(
-        { _id: id },
-        { $set: updateData },
-        {
-            returnDocument: "after",
-            runValidators: true
-        }
-    )
-        .select("-passwordHash")
-        .lean();
+  )
+    .select('-passwordHash')
+    .lean();
 }
 
 // Delete a user by ID
 export async function deleteUser(id) {
-    return User.findByIdAndDelete(id)
-        .select("-passwordHash")
-        .lean();
+  return User.findByIdAndDelete(id).select('-passwordHash').lean();
 }
-

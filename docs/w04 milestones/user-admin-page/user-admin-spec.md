@@ -1,4 +1,5 @@
 # Feature Set 3 — User Management
+
 ## Issue 1 — Implement Role-Based Dashboards and User Profile
 
 ### Goal
@@ -6,29 +7,31 @@
 Create separate dashboards for regular users and administrators, along with a protected profile page for authenticated users.
 
 ### Requirements
+
 1. Create/protect GET /dashboard.
-Requires authentication.
-Regular users are directed to the regular user dashboard.
-Admin users are directed to /admin/dashboard.
+   Requires authentication.
+   Regular users are directed to the regular user dashboard.
+   Admin users are directed to /admin/dashboard.
 
 2. Create/protect the regular user dashboard.
-Accessible only to authenticated non-admin users.
-Display regular user features.
+   Accessible only to authenticated non-admin users.
+   Display regular user features.
 
 3. Keep/create the admin dashboard at GET /admin/dashboard.
-Accessible only to authenticated administrators.
-Display administrative features.
+   Accessible only to authenticated administrators.
+   Display administrative features.
 
 4. Create/protect GET /profile.
-Accessible to authenticated users.
-Display only the authenticated user's information.
-Do not use a user ID supplied in the URL to determine whose profile is displayed.
-Add appropriate navigation links.
-Regular users can access their dashboard and profile.
-Administrators can access their dashboard, profile, and administration features.
-Admin dashboard includes a link to /admin/users.
+   Accessible to authenticated users.
+   Display only the authenticated user's information.
+   Do not use a user ID supplied in the URL to determine whose profile is displayed.
+   Add appropriate navigation links.
+   Regular users can access their dashboard and profile.
+   Administrators can access their dashboard, profile, and administration features.
+   Admin dashboard includes a link to /admin/users.
 
 ### Acceptance criteria
+
 1. An unauthenticated user accessing /dashboard or /profile is redirected to /login.
 
 2. A regular user can access the regular dashboard and their own profile.
@@ -43,7 +46,6 @@ Admin dashboard includes a link to /admin/users.
 
 7. A user can only view their own profile.
 
-
 ## Issue 2 — Implement User Management API
 
 ### Goal
@@ -51,6 +53,7 @@ Admin dashboard includes a link to /admin/users.
 Create the API operations required to retrieve, update, and delete users.
 
 ### Requirements
+
 1. Create the necessary user model functions.
 2. Create the necessary controller functions.
 3. Implement:
@@ -59,6 +62,7 @@ Create the API operations required to retrieve, update, and delete users.
    - DELETE /api/users/:id
 
 #### GET /api/users:
+
 - Admin → return users they are authorized to manage.
 - Regular user → return only their own information.
 - Never expose passwordHash.
@@ -66,6 +70,7 @@ Create the API operations required to retrieve, update, and delete users.
 - Return appropriate HTTP status codes.
 
 ### Acceptance criteria
+
 1. Valid requests return the expected data.
 2. Sensitive fields are excluded.
 3. Invalid data returns 400.
@@ -95,7 +100,6 @@ Regular users cannot elevate their privileges.
 Admins can manage other users.
 Users can manage their own permitted information.
 
-
 ## Issue 4 — Implement Dynamic User Management UI
 
 ### Goal
@@ -103,6 +107,7 @@ Users can manage their own permitted information.
 Allow administrators to manage users without refreshing the page.
 
 ### Requirements
+
 Create the /admin/users page.
 Load users dynamically through GET /api/users.
 Render users using HTML templates.
@@ -122,8 +127,8 @@ Users can be deleted without a page refresh.
 Canceling an edit restores the user card.
 The UI reflects successful API operations immediately.
 
-
 ## Issue 5 — Test Feature Set 3
+
 Goal
 
 Verify authentication, authorization, dashboards, profiles, APIs, and dynamic user management.
@@ -151,19 +156,19 @@ Acceptance criteria
 The complete Feature Set 3 behavior works according to the requirements above, with authentication and authorization enforced both at the page and API levels.
 
 Final architecture
-                         Authentication
-                               │
-                ┌──────────────┴──────────────┐
-                │                             │
-             Customer                        Admin
-                │                             │
-                ▼                             ▼
-          /dashboard                  /admin/dashboard
-                │                             │
-                └──────────────┬──────────────┘
-                               │
-                            /profile
-                         Own profile only
+Authentication
+│
+┌──────────────┴──────────────┐
+│ │
+Customer Admin
+│ │
+▼ ▼
+/dashboard /admin/dashboard
+│ │
+└──────────────┬──────────────┘
+│
+/profile
+Own profile only
 
                                │
                                ▼

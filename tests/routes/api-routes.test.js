@@ -122,7 +122,12 @@ describe('GET /api/trips', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(
-      expect.objectContaining({ page: 1, limit: 10, totalTrips: 6, totalPages: 1 })
+      expect.objectContaining({
+        page: 1,
+        limit: 10,
+        totalTrips: 6,
+        totalPages: 1,
+      })
     );
     expect(response.body.trips).toHaveLength(6);
   });
@@ -132,7 +137,12 @@ describe('GET /api/trips', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(
-      expect.objectContaining({ page: 2, limit: 2, totalTrips: 6, totalPages: 3 })
+      expect.objectContaining({
+        page: 2,
+        limit: 2,
+        totalTrips: 6,
+        totalPages: 3,
+      })
     );
     expect(response.body.trips).toHaveLength(2);
   });
@@ -141,7 +151,9 @@ describe('GET /api/trips', () => {
     const ids = [];
 
     for (const page of [1, 2, 3]) {
-      const response = await request(app).get(`/api/trips?page=${page}&limit=2`);
+      const response = await request(app).get(
+        `/api/trips?page=${page}&limit=2`
+      );
       ids.push(...response.body.trips.map((trip) => trip.id));
     }
 
@@ -173,7 +185,9 @@ describe('GET /api/trips filters', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.totalTrips).toBe(2);
-    expect(response.body.trips.every((trip) => trip.region === 'central')).toBe(true);
+    expect(response.body.trips.every((trip) => trip.region === 'central')).toBe(
+      true
+    );
   });
 
   test('season returns only trips with that best season', async () => {
@@ -207,18 +221,27 @@ describe('GET /api/trips filters', () => {
   });
 
   test('a filter excludes search matches outside it', async () => {
-    const response = await request(app).get('/api/trips?region=kansai&search=mountain');
+    const response = await request(app).get(
+      '/api/trips?region=kansai&search=mountain'
+    );
 
     expect(response.status).toBe(200);
     expect(ids(response)).toEqual(['sakura-valley']);
   });
 
   test('filtered results are paginated with filtered totals', async () => {
-    const response = await request(app).get('/api/trips?season=autumn&limit=2&page=2');
+    const response = await request(app).get(
+      '/api/trips?season=autumn&limit=2&page=2'
+    );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(
-      expect.objectContaining({ page: 2, limit: 2, totalTrips: 3, totalPages: 2 })
+      expect.objectContaining({
+        page: 2,
+        limit: 2,
+        totalTrips: 3,
+        totalPages: 2,
+      })
     );
     expect(response.body.trips).toHaveLength(1);
   });
@@ -241,9 +264,12 @@ describe('GET /api/trips filters', () => {
     expect(response.body.totalTrips).toBe(0);
   });
 
-  test.each(['region=moon', 'season=monsoon'])('returns 400 for %s', async (query) => {
-    const response = await request(app).get(`/api/trips?${query}`);
+  test.each(['region=moon', 'season=monsoon'])(
+    'returns 400 for %s',
+    async (query) => {
+      const response = await request(app).get(`/api/trips?${query}`);
 
-    expect(response.status).toBe(400);
-  });
+      expect(response.status).toBe(400);
+    }
+  );
 });

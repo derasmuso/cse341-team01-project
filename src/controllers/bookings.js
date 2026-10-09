@@ -4,10 +4,10 @@ import { getScheduleById } from '../models/schedules.js';
 import { getTripById } from '../models/trips.js';
 import { getAllTicketClasses } from '../models/ticket-classes.js';
 import {
-    countBookings,
-    createBooking,
-    getBookingsByPassengerEmail,
-    getBookingsPage
+  countBookings,
+  createBooking,
+  getBookingsByPassengerEmail,
+  getBookingsPage,
 } from '../models/bookings.js';
 
 const DEFAULT_PAGE = 1;
@@ -27,21 +27,21 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
  * @returns {{ value?: number, error?: string }}
  */
 const parseIntegerParam = (raw, name, defaultValue, min, max) => {
-    if (raw === undefined) {
-        return { value: defaultValue };
-    }
+  if (raw === undefined) {
+    return { value: defaultValue };
+  }
 
-    if (typeof raw !== 'string' || !/^\d+$/.test(raw)) {
-        return { error: `${name} must be a whole number` };
-    }
+  if (typeof raw !== 'string' || !/^\d+$/.test(raw)) {
+    return { error: `${name} must be a whole number` };
+  }
 
-    const value = Number(raw);
+  const value = Number(raw);
 
-    if (value < min || value > max) {
-        return { error: `${name} must be between ${min} and ${max}` };
-    }
+  if (value < min || value > max) {
+    return { error: `${name} must be between ${min} and ${max}` };
+  }
 
-    return { value };
+  return { value };
 };
 
 /**
@@ -49,15 +49,15 @@ const parseIntegerParam = (raw, name, defaultValue, min, max) => {
  * @returns {{ value?: string, error?: string }}
  */
 const parseChoiceParam = (raw, name, choices, defaultValue) => {
-    if (raw === undefined) {
-        return { value: defaultValue };
-    }
+  if (raw === undefined) {
+    return { value: defaultValue };
+  }
 
-    if (typeof raw !== 'string' || !choices.includes(raw)) {
-        return { error: `${name} must be one of: ${choices.join(', ')}` };
-    }
+  if (typeof raw !== 'string' || !choices.includes(raw)) {
+    return { error: `${name} must be one of: ${choices.join(', ')}` };
+  }
 
-    return { value: raw };
+  return { value: raw };
 };
 
 /**
@@ -67,21 +67,21 @@ const parseChoiceParam = (raw, name, choices, defaultValue) => {
  * @returns {{ value?: string, error?: string }}
  */
 const parseDateParam = (raw, name) => {
-    if (raw === undefined) {
-        return { value: undefined };
-    }
+  if (raw === undefined) {
+    return { value: undefined };
+  }
 
-    if (typeof raw !== 'string' || !DATE_PATTERN.test(raw)) {
-        return { error: `${name} must be a date in YYYY-MM-DD format` };
-    }
+  if (typeof raw !== 'string' || !DATE_PATTERN.test(raw)) {
+    return { error: `${name} must be a date in YYYY-MM-DD format` };
+  }
 
-    const date = new Date(`${raw}T00:00:00.000Z`);
+  const date = new Date(`${raw}T00:00:00.000Z`);
 
-    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
-        return { error: `${name} must be a real calendar date` };
-    }
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
+    return { error: `${name} must be a real calendar date` };
+  }
 
-    return { value: raw };
+  return { value: raw };
 };
 
 /**
@@ -91,38 +91,72 @@ const parseDateParam = (raw, name) => {
  *   that were not supplied are undefined), or the first validation error found.
  */
 const parseBookingsQuery = (query) => {
-    const page = parseIntegerParam(query.page, 'page', DEFAULT_PAGE, 1, Number.MAX_SAFE_INTEGER);
-    const limit = parseIntegerParam(query.limit, 'limit', DEFAULT_LIMIT, 1, MAX_LIMIT);
-    const sortBy = parseChoiceParam(query.sortBy, 'sortBy', SORT_FIELDS, DEFAULT_SORT_BY);
-    const sortOrder = parseChoiceParam(query.sortOrder, 'sortOrder', SORT_ORDERS, DEFAULT_SORT_ORDER);
+  const page = parseIntegerParam(
+    query.page,
+    'page',
+    DEFAULT_PAGE,
+    1,
+    Number.MAX_SAFE_INTEGER
+  );
+  const limit = parseIntegerParam(
+    query.limit,
+    'limit',
+    DEFAULT_LIMIT,
+    1,
+    MAX_LIMIT
+  );
+  const sortBy = parseChoiceParam(
+    query.sortBy,
+    'sortBy',
+    SORT_FIELDS,
+    DEFAULT_SORT_BY
+  );
+  const sortOrder = parseChoiceParam(
+    query.sortOrder,
+    'sortOrder',
+    SORT_ORDERS,
+    DEFAULT_SORT_ORDER
+  );
 
-    const ticketClass = parseChoiceParam(query.ticketClass, 'ticketClass', TICKET_CLASSES, undefined);
-    const startDate = parseDateParam(query.startDate, 'startDate');
-    const endDate = parseDateParam(query.endDate, 'endDate');
+  const ticketClass = parseChoiceParam(
+    query.ticketClass,
+    'ticketClass',
+    TICKET_CLASSES,
+    undefined
+  );
+  const startDate = parseDateParam(query.startDate, 'startDate');
+  const endDate = parseDateParam(query.endDate, 'endDate');
 
-    const failed = [page, limit, sortBy, sortOrder, ticketClass, startDate, endDate]
-        .find((result) => result.error);
+  const failed = [
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    ticketClass,
+    startDate,
+    endDate,
+  ].find((result) => result.error);
 
-    if (failed) {
-        return { error: failed.error };
-    }
+  if (failed) {
+    return { error: failed.error };
+  }
 
-    // YYYY-MM-DD strings sort the same way the dates do, so they compare directly.
-    if (startDate.value && endDate.value && startDate.value > endDate.value) {
-        return { error: 'startDate must be on or before endDate' };
-    }
+  // YYYY-MM-DD strings sort the same way the dates do, so they compare directly.
+  if (startDate.value && endDate.value && startDate.value > endDate.value) {
+    return { error: 'startDate must be on or before endDate' };
+  }
 
-    return {
-        params: {
-            page: page.value,
-            limit: limit.value,
-            sortBy: sortBy.value,
-            sortOrder: sortOrder.value,
-            ticketClass: ticketClass.value,
-            startDate: startDate.value,
-            endDate: endDate.value
-        }
-    };
+  return {
+    params: {
+      page: page.value,
+      limit: limit.value,
+      sortBy: sortBy.value,
+      sortOrder: sortOrder.value,
+      ticketClass: ticketClass.value,
+      startDate: startDate.value,
+      endDate: endDate.value,
+    },
+  };
 };
 
 /**
@@ -132,25 +166,31 @@ const parseBookingsQuery = (query) => {
  * @returns {{ filter: object, applied: object }}
  */
 const buildBookingsFilter = ({ ticketClass, startDate, endDate }) => {
-    const filter = {};
-    const applied = {};
+  const filter = {};
+  const applied = {};
 
-    if (ticketClass) {
-        filter.ticketClass = ticketClass;
-        applied.ticketClass = ticketClass;
-    }
+  if (ticketClass) {
+    filter.ticketClass = ticketClass;
+    applied.ticketClass = ticketClass;
+  }
 
-    if (startDate) {
-        filter.createdAt = { ...filter.createdAt, $gte: new Date(`${startDate}T00:00:00.000Z`) };
-        applied.startDate = startDate;
-    }
+  if (startDate) {
+    filter.createdAt = {
+      ...filter.createdAt,
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+    };
+    applied.startDate = startDate;
+  }
 
-    if (endDate) {
-        filter.createdAt = { ...filter.createdAt, $lte: new Date(`${endDate}T23:59:59.999Z`) };
-        applied.endDate = endDate;
-    }
+  if (endDate) {
+    filter.createdAt = {
+      ...filter.createdAt,
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
+    applied.endDate = endDate;
+  }
 
-    return { filter, applied };
+  return { filter, applied };
 };
 
 const bookingPage = async (req, res) => {
@@ -200,43 +240,43 @@ const processBookingRequest = async (req, res) => {
  * and page count describe only the matching bookings.
  */
 const getAllBookings = async (req, res) => {
-    const { params, error: validationError } = parseBookingsQuery(req.query);
+  const { params, error: validationError } = parseBookingsQuery(req.query);
 
-    if (validationError) {
-        return res.status(400).json({ error: validationError });
-    }
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
 
-    const { page, limit, sortBy, sortOrder } = params;
-    const { filter, applied } = buildBookingsFilter(params);
+  const { page, limit, sortBy, sortOrder } = params;
+  const { filter, applied } = buildBookingsFilter(params);
 
-    try {
-        const [bookings, totalItems] = await Promise.all([
-            getBookingsPage({
-                filter,
-                sortBy,
-                sortDirection: sortOrder === 'asc' ? 1 : -1,
-                skip: (page - 1) * limit,
-                limit
-            }),
-            countBookings(filter)
-        ]);
+  try {
+    const [bookings, totalItems] = await Promise.all([
+      getBookingsPage({
+        filter,
+        sortBy,
+        sortDirection: sortOrder === 'asc' ? 1 : -1,
+        skip: (page - 1) * limit,
+        limit,
+      }),
+      countBookings(filter),
+    ]);
 
-        return res.status(200).json({
-            bookings,
-            meta: {
-                totalItems,
-                totalPages: Math.ceil(totalItems / limit),
-                page,
-                limit,
-                sortBy,
-                sortOrder,
-                filters: applied
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
-        return res.status(500).json({ error: 'Failed to fetch bookings' });
-    }
+    return res.status(200).json({
+      bookings,
+      meta: {
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        filters: applied,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+    return res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
 };
 
 /**
@@ -266,7 +306,10 @@ export async function getMyBookings(req, res) {
  * client-side by calling the bookings API.
  */
 const bookingsAdminPage = (req, res) => {
-    res.render('bookings', { title: 'Bookings Admin', ticketClasses: TICKET_CLASSES });
+  res.render('bookings', {
+    title: 'Bookings Admin',
+    ticketClasses: TICKET_CLASSES,
+  });
 };
 
 export {
