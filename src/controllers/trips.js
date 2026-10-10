@@ -5,7 +5,7 @@ import {
   getAllTrips as findAllTrips,
   getTripsPage as findTripsPage,
   TRIP_REGIONS,
-  TRIP_SEASONS
+  TRIP_SEASONS,
 } from '../models/trips.js';
 
 export async function getTripById(req, res) {
@@ -42,7 +42,8 @@ export async function getAllTrips(req, res) {
   const page = parseIntParam(req.query.page, 1);
   const limit = parseIntParam(req.query.limit, 10);
   const { region, season } = req.query;
-  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const search =
+    typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
   if (!Number.isInteger(page) || page < 1) {
     return res.status(400).json({
@@ -69,7 +70,13 @@ export async function getAllTrips(req, res) {
   }
 
   try {
-    const { trips, totalTrips } = await findTripsPage({ page, limit, region, season, search });
+    const { trips, totalTrips } = await findTripsPage({
+      page,
+      limit,
+      region,
+      season,
+      search,
+    });
 
     return res.status(200).json({
       trips,

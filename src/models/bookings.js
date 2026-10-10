@@ -32,12 +32,18 @@ export async function getAllBookings() {
  * @param {number} options.limit - Maximum number of bookings to return.
  * @returns {Promise<object[]>} The bookings on the requested page.
  */
-export async function getBookingsPage({ filter = {}, sortBy, sortDirection, skip, limit }) {
-    return Booking.find(filter)
-        .sort({ [sortBy]: sortDirection, _id: sortDirection })
-        .skip(skip)
-        .limit(limit)
-        .lean();
+export async function getBookingsPage({
+  filter = {},
+  sortBy,
+  sortDirection,
+  skip,
+  limit,
+}) {
+  return Booking.find(filter)
+    .sort({ [sortBy]: sortDirection, _id: sortDirection })
+    .skip(skip)
+    .limit(limit)
+    .lean();
 }
 
 /**
@@ -46,7 +52,7 @@ export async function getBookingsPage({ filter = {}, sortBy, sortDirection, skip
  * @returns {Promise<number>} The total number of matching bookings.
  */
 export async function countBookings(filter = {}) {
-    return Booking.countDocuments(filter);
+  return Booking.countDocuments(filter);
 }
 
 /**

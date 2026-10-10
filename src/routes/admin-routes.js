@@ -1,9 +1,17 @@
+// src/routes/admin-routes.js
+
 import { Router } from 'express';
-import { requirePageRole } from '../middleware/auth.js';
-import { adminDashboardPage } from '../controllers/admin.js';
+
+import { requirePageLogin, requirePageRole } from '../middleware/auth.js';
+
+import { adminDashboardPage, adminUsersPage } from '../controllers/admin.js';
 
 const router = Router();
 
-router.get('/dashboard', requirePageRole('admin'), adminDashboardPage);
+// Admin dashboard route
+router.get('/dashboard', requirePageRole('2'), adminDashboardPage);
+
+// Admin users page route
+router.get('/users', requirePageRole('2'), adminUsersPage);
 
 export default router;

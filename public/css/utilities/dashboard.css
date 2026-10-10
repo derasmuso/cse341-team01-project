@@ -1,3 +1,49 @@
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 100px);
+}
+
+.dashboard-sidebar {
+    background-color: var(--clr-text-primary);
+    color: var(--clr-text-alt-primary);
+    padding: var(--space-xl) var(--space-lg);
+
+    .dashboard-sidebar-header {
+        margin-bottom: var(--space-xl);
+
+        h2 {
+            font-size: var(--font-size-xl);
+            color: var(--clr-text-alt-primary);
+            margin: 0;
+        }
+    }
+
+    .dashboard-nav {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+
+        .dashboard-nav-link {
+            display: block;
+            padding: var(--space-sm) var(--space-md);
+            color: var(--clr-text-alt-primary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: background-color 0.2s ease;
+
+            &:hover,
+            &.active {
+                background-color: var(--clr-primary);
+            }
+        }
+    }
+}
+
+.dashboard-main {
+    padding: var(--space-xl);
+}
+
 section.dashboard-hero {
     margin-bottom: var(--space-lg);
 
@@ -9,30 +55,6 @@ section.dashboard-hero {
 
     p {
         color: var(--clr-text-secondary);
-    }
-}
-
-section.dashboard-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-
-    .btn {
-        display: inline-block;
-        padding: var(--space-sm) var(--space-xl);
-        font-size: var(--font-size-md);
-        font-weight: 500;
-        text-decoration: none;
-        border-radius: var(--radius-md);
-        background-color: var(--clr-primary);
-        color: var(--clr-text-alt-primary);
-        transition: all 0.2s ease;
-
-        &:hover {
-            background-color: var(--clr-accent);
-            box-shadow: var(--shadow-md);
-        }
     }
 }
 
@@ -75,5 +97,28 @@ section.dashboard-bookings {
             letter-spacing: 0.05em;
             color: var(--clr-text-secondary);
         }
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-sidebar {
+        padding: var(--space-md);
+
+        .dashboard-sidebar-header {
+            margin-bottom: var(--space-md);
+        }
+
+        .dashboard-nav {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+    }
+
+    .dashboard-main {
+        padding: var(--space-lg) var(--space-md);
     }
 }

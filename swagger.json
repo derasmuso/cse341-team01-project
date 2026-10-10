@@ -11,7 +11,519 @@
       "description": "Current server"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid",
+        "description": "Session cookie used for authentication"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Unique user identifier.",
+            "example": "68c123456789abcdef123456"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "User's display name.",
+            "example": "Yuki Tanaka"
+          },
+          "username": {
+            "type": "string",
+            "description": "User's unique username.",
+            "example": "yuki.tanaka"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address.",
+            "example": "yuki.tanaka@example.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "User's role ID.",
+            "enum": [
+              "1",
+              "2"
+            ],
+            "example": "1"
+          }
+        },
+        "required": [
+          "_id",
+          "displayName",
+          "username",
+          "email",
+          "role"
+        ]
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "alpine-panorama"
+          },
+          "name": {
+            "type": "string",
+            "example": "Alpine Panorama Express"
+          },
+          "description": {
+            "type": "string",
+            "example": "Journey through the Japanese Alps with stunning mountain views and traditional villages."
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "central",
+              "northern",
+              "kansai",
+              "hokkaido"
+            ],
+            "example": "central"
+          },
+          "startStation": {
+            "type": "string",
+            "example": "nagoya"
+          },
+          "endStation": {
+            "type": "string",
+            "example": "toyama"
+          },
+          "duration": {
+            "type": "string",
+            "example": "4.5 hours"
+          },
+          "distance": {
+            "type": "number",
+            "example": 180
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Mount Tateyama views",
+              "Hida River gorge"
+            ]
+          },
+          "bestSeason": {
+            "type": "string",
+            "enum": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "example": "autumn"
+          },
+          "operatingMonths": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "/images/routes/alpine-panorama.png"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Passenger": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Yuki"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Tanaka"
+          },
+          "email": {
+            "type": "string",
+            "example": "yuki.tanaka@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+81 90-1234-5678"
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique booking confirmation code.",
+            "example": "JR4F9X2A1B"
+          },
+          "scheduleId": {
+            "type": "string",
+            "example": "12"
+          },
+          "tripId": {
+            "type": "string",
+            "example": "3"
+          },
+          "ticketClass": {
+            "type": "string",
+            "example": "standard"
+          },
+          "selectedDay": {
+            "type": "string",
+            "example": "Monday"
+          },
+          "passengers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Passenger"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageMeta": {
+        "type": "object",
+        "description": "Information about the query that produced a page of results.",
+        "properties": {
+          "totalItems": {
+            "type": "integer",
+            "description": "Total number of items matching the query across all pages.",
+            "example": 87
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 9
+          },
+          "page": {
+            "type": "integer",
+            "description": "The page that was returned.",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of items per page.",
+            "example": 10
+          },
+          "sortBy": {
+            "type": "string",
+            "example": "createdAt"
+          },
+          "sortOrder": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "example": "desc"
+          },
+          "filters": {
+            "type": "object",
+            "description": "The filters applied to the query. Only filters that were supplied are included, so the object is empty when no filters are active.",
+            "properties": {
+              "ticketClass": {
+                "type": "string",
+                "example": "premium"
+              },
+              "startDate": {
+                "type": "string",
+                "example": "2026-01-01"
+              },
+              "endDate": {
+                "type": "string",
+                "example": "2026-03-31"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "paths": {
+    "/api/users": {
+      "get": {
+        "summary": "Get users",
+        "description": "Returns user information for the authenticated user.\nAdministrators receive all users, while regular users receive\nonly their own user information.\n\nPassword hashes are never included in the response.\n",
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The authenticated user was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "User not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Failed to retrieve users"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "summary": "Update a user",
+        "description": "Updates an authenticated user's information.\nRegular users can update only their own information and cannot\nchange their role. Administrators can update any user.\n\nPassword hashes are never included in the response.\n",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The user's MongoDB ObjectId.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "68c123456789abcdef123456"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string",
+                    "example": "Yuki Tanaka"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "yuki.tanaka@example.com"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "1",
+                      "2"
+                    ],
+                    "example": "1"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID or user data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticated user is not authorized to update this user or change the user's role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to update user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "description": "Deletes an authenticated user's account.\nRegular users can delete only their own account.\nAdministrators can delete any user.\n\nPassword hashes are never included in the response.\n",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The user's MongoDB ObjectId.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "68c123456789abcdef123456"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The authenticated user is not authorized to delete this user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found.",
+            "content": {
+              "application/json": {
+                "schema": null,
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to delete user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trips": {
       "get": {
         "summary": "Get a page of trips",
@@ -592,218 +1104,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
                 }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error while fetching bookings."
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Trip": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "alpine-panorama"
-          },
-          "name": {
-            "type": "string",
-            "example": "Alpine Panorama Express"
-          },
-          "description": {
-            "type": "string",
-            "example": "Journey through the Japanese Alps with stunning mountain views and traditional villages."
-          },
-          "region": {
-            "type": "string",
-            "enum": [
-              "central",
-              "northern",
-              "kansai",
-              "hokkaido"
-            ],
-            "example": "central"
-          },
-          "startStation": {
-            "type": "string",
-            "example": "nagoya"
-          },
-          "endStation": {
-            "type": "string",
-            "example": "toyama"
-          },
-          "duration": {
-            "type": "string",
-            "example": "4.5 hours"
-          },
-          "distance": {
-            "type": "number",
-            "example": 180
-          },
-          "highlights": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": [
-              "Mount Tateyama views",
-              "Hida River gorge"
-            ]
-          },
-          "bestSeason": {
-            "type": "string",
-            "enum": [
-              "spring",
-              "summer",
-              "autumn",
-              "winter"
-            ],
-            "example": "autumn"
-          },
-          "operatingMonths": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "example": [
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11
-            ]
-          },
-          "imageUrl": {
-            "type": "string",
-            "example": "/images/routes/alpine-panorama.png"
-          }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string"
-          }
-        }
-      },
-      "Passenger": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string",
-            "example": "Yuki"
-          },
-          "lastName": {
-            "type": "string",
-            "example": "Tanaka"
-          },
-          "email": {
-            "type": "string",
-            "example": "yuki.tanaka@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+81 90-1234-5678"
-          }
-        }
-      },
-      "Booking": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique booking confirmation code.",
-            "example": "JR4F9X2A1B"
-          },
-          "scheduleId": {
-            "type": "string",
-            "example": "12"
-          },
-          "tripId": {
-            "type": "string",
-            "example": "3"
-          },
-          "ticketClass": {
-            "type": "string",
-            "example": "standard"
-          },
-          "selectedDay": {
-            "type": "string",
-            "example": "Monday"
-          },
-          "passengers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Passenger"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "PageMeta": {
-        "type": "object",
-        "description": "Information about the query that produced a page of results.",
-        "properties": {
-          "totalItems": {
-            "type": "integer",
-            "description": "Total number of items matching the query across all pages.",
-            "example": 87
-          },
-          "totalPages": {
-            "type": "integer",
-            "example": 9
-          },
-          "page": {
-            "type": "integer",
-            "description": "The page that was returned.",
-            "example": 1
-          },
-          "limit": {
-            "type": "integer",
-            "description": "Maximum number of items per page.",
-            "example": 10
-          },
-          "sortBy": {
-            "type": "string",
-            "example": "createdAt"
-          },
-          "sortOrder": {
-            "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "example": "desc"
-          },
-          "filters": {
-            "type": "object",
-            "description": "The filters applied to the query. Only filters that were supplied are included, so the object is empty when no filters are active.",
-            "properties": {
-              "ticketClass": {
-                "type": "string",
-                "example": "premium"
-              },
-              "startDate": {
-                "type": "string",
-                "example": "2026-01-01"
-              },
-              "endDate": {
-                "type": "string",
-                "example": "2026-03-31"
               }
             }
           }

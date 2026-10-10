@@ -7,7 +7,7 @@ import {
 // For Registration
 
 export function registerPage(req, res) {
-  res.render('auth/register', { title: 'Register' });
+  return res.render('auth/register', { title: 'Register' });
 }
 
 export async function register(req, res, next) {
@@ -35,7 +35,13 @@ export async function register(req, res, next) {
   }
 
   try {
-    await createUser({ displayName, username, email, password });
+    await createUser({
+      displayName,
+      username,
+      email,
+      password,
+    });
+
     return res.redirect('/login');
   } catch (error) {
     if (error.code === 11000) {
@@ -44,6 +50,7 @@ export async function register(req, res, next) {
         error: 'That email or username is already registered.',
       });
     }
+
     return next(error);
   }
 }
@@ -51,7 +58,7 @@ export async function register(req, res, next) {
 // For Login
 
 export function loginPage(req, res) {
-  res.render('auth/login', { title: 'Log In' });
+  return res.render('auth/login', { title: 'Log In' });
 }
 
 export async function login(req, res, next) {
@@ -59,6 +66,7 @@ export async function login(req, res, next) {
 
   try {
     const user = await findUserByEmail(email);
+
     const isValid = user && (await verifyPassword(password, user.passwordHash));
 
     if (!isValid) {
@@ -73,12 +81,12 @@ export async function login(req, res, next) {
       displayName: user.displayName,
       username: user.username,
       email: user.email,
-      role: user.role.name,
+      role: user.role.id,
     };
 
-    // Admins go to the admin dashboard, everyone else to the user dashboard.
     const destination =
-      user.role.name === 'admin' ? '/admin/dashboard' : '/dashboard';
+      user.role.id === '2' ? '/admin/dashboard' : '/dashboard';
+
     return res.redirect(destination);
   } catch (error) {
     return next(error);
@@ -92,6 +100,7 @@ export function logout(req, res, next) {
     if (error) {
       return next(error);
     }
+
     res.clearCookie('connect.sid');
     return res.redirect('/');
   });
