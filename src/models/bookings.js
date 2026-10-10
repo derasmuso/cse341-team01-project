@@ -77,3 +77,26 @@ export async function getBookingsByPassengerEmail(email) {
     .sort({ createdAt: -1 })
     .lean();
 }
+
+/**
+ * Updates a single booking by its booking id.
+ * @param {string} id - The booking's unique id (confirmation code).
+ * @param {object} data - The fields to update and their new values.
+ * @returns {Promise<object|null>} The updated booking, or null if not found.
+ */
+export async function updateBooking(id, data) {
+  return Booking.findOneAndUpdate(
+    { id },
+    { $set: data },
+    { returnDocument: 'after', runValidators: true }
+  ).lean();
+}
+
+/**
+ * Deletes a single booking by its booking id.
+ * @param {string} id - The booking's unique id (confirmation code).
+ * @returns {Promise<object|null>} The deleted booking, or null if not found.
+ */
+export async function deleteBooking(id) {
+  return Booking.findOneAndDelete({ id }).lean();
+}
