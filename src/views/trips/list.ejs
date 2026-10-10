@@ -7,18 +7,40 @@
         Search by Region:
         <select id="region-filter">
             <option value="all">All Regions</option>
+            <% regions.forEach((region)=> { %>
+                <option value="<%= region %>">
+                    <%= region.charAt(0).toUpperCase() + region.slice(1) %>
+                </option>
+                <% }); %>
         </select>
 
         Search by Season:
         <select id="season-filter">
             <option value="all">Any Season</option>
+            <% seasons.forEach((season)=> { %>
+                <option value="<%= season %>">
+                    <%= season.charAt(0).toUpperCase() + season.slice(1) %>
+                </option>
+                <% }); %>
         </select>
+        <form id="trip-search-form" role="search">
+            <label for="search-filter">Search:</label>
+            <input type="search" id="search-filter" placeholder="Name or description">
+            <button type="submit">Search</button>
+        </form>
     </div>
 
     <div class="trips-state" id="trips-loading">Loading trips...</div>
     <div class="trips-state trips-error" id="trips-error" hidden></div>
+    <div class="trips-state" id="trips-empty" hidden>No trips match your filters.</div>
 
     <div class="routes-grid" id="trips-list"></div>
+
+    <nav class="trips-pagination" id="trips-pagination" aria-label="Trip pages" hidden>
+        <button type="button" id="trips-prev">&larr; Previous</button>
+        <span id="trips-page-indicator"></span>
+        <button type="button" id="trips-next">Next &rarr;</button>
+    </nav>
 
     <template id="trip-card-template">
         <div class="route-card">

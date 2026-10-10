@@ -8,7 +8,7 @@ import TicketClass from './schemas/ticket-classes.js';
  * @returns {Promise<Array>} All ticket classes.
  */
 const getAllTicketClasses = async () => {
-    return TicketClass.find({});
+  return TicketClass.find({});
 };
 
 /**
@@ -18,12 +18,9 @@ const getAllTicketClasses = async () => {
  * @returns {Promise<Array>} Ticket classes available on the requested day.
  */
 const getTicketClassesForDay = async (day) => {
-    return TicketClass.find({
-        availableDays: day
-    });
+  return TicketClass.find({
+    availableDays: day,
+  });
 };
 
-export {
-    getAllTicketClasses,
-    getTicketClassesForDay
-};
+export { getAllTicketClasses, getTicketClassesForDay };

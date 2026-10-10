@@ -7,9 +7,9 @@ import Booking from './schemas/bookings.js';
  * @returns {Promise<object>} The newly created booking.
  */
 export async function createBooking(bookingData) {
-    const booking = new Booking(bookingData);
-    await booking.save();
-    return booking.toObject();
+  const booking = new Booking(bookingData);
+  await booking.save();
+  return booking.toObject();
 }
 
 /**
@@ -17,7 +17,42 @@ export async function createBooking(bookingData) {
  * @returns {Promise<object[]>} All bookings.
  */
 export async function getAllBookings() {
-    return Booking.find({}).lean();
+  return Booking.find({}).lean();
+}
+
+/**
+ * Retrieves one page of bookings.
+ * `_id` is added as a final sort key so bookings with equal sort values always
+ * come back in the same order, which keeps the pages from overlapping.
+ * @param {object} options
+ * @param {object} [options.filter={}] - MongoDB filter applied before paging.
+ * @param {string} options.sortBy - Booking field to sort by.
+ * @param {1|-1} options.sortDirection - 1 for ascending, -1 for descending.
+ * @param {number} options.skip - Number of bookings to skip.
+ * @param {number} options.limit - Maximum number of bookings to return.
+ * @returns {Promise<object[]>} The bookings on the requested page.
+ */
+export async function getBookingsPage({
+  filter = {},
+  sortBy,
+  sortDirection,
+  skip,
+  limit,
+}) {
+  return Booking.find(filter)
+    .sort({ [sortBy]: sortDirection, _id: sortDirection })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+}
+
+/**
+ * Counts the bookings that match a filter, ignoring paging.
+ * @param {object} [filter={}] - MongoDB filter.
+ * @returns {Promise<number>} The total number of matching bookings.
+ */
+export async function countBookings(filter = {}) {
+  return Booking.countDocuments(filter);
 }
 
 /**
@@ -26,7 +61,7 @@ export async function getAllBookings() {
  * @returns {Promise<object|null>} The matching booking, or null if not found.
  */
 export async function getBookingById(id) {
-    return Booking.findOne({ id }).lean();
+  return Booking.findOne({ id }).lean();
 }
 
 /**
@@ -37,8 +72,8 @@ export async function getBookingById(id) {
  * @returns {Promise<object[]>} The matching bookings.
  */
 export async function getBookingsByPassengerEmail(email) {
-    return Booking.find({ 'passengers.email': email })
-        .collation({ locale: 'en', strength: 2 })
-        .sort({ createdAt: -1 })
-        .lean();
+  return Booking.find({ 'passengers.email': email })
+    .collation({ locale: 'en', strength: 2 })
+    .sort({ createdAt: -1 })
+    .lean();
 }

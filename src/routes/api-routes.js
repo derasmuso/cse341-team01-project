@@ -4,19 +4,260 @@ import { Router } from 'express';
 
 import {
     getAllTicketClasses,
-    getTicketClassesForDay
+    getTicketClassesForDay,
 } from '../controllers/ticket-classes.js';
 
-import {
-    getAllTrips,
-    getTripById
-} from '../controllers/trips.js';
+import { getAllTrips, getTripById } from '../controllers/trips.js';
 
-import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
+import {
+    getSchedulesForTrip,
+    getSchedulesForTripAndMonth,
+} from '../controllers/schedules.js';
+
+import {
+    getAllBookings,
+    getMyBookings,
+} from '../controllers/bookings.js';
+
+import {
+    getUsers,
+    updateUserById,
+    deleteUserById,
+} from '../controllers/users.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
 
 const router = Router();
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Unique user identifier.
+ *           example: 68c123456789abcdef123456
+ *         displayName:
+ *           type: string
+ *           description: User's display name.
+ *           example: Yuki Tanaka
+ *         username:
+ *           type: string
+ *           description: User's unique username.
+ *           example: yuki.tanaka
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address.
+ *           example: yuki.tanaka@example.com
+ *         role:
+ *           type: string
+ *           description: User's role ID.
+ *           enum:
+ *             - "1"
+ *             - "2"
+ *           example: "1"
+ *       required:
+ *         - _id
+ *         - displayName
+ *         - username
+ *         - email
+ *         - role
+ */
+
+/**
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: Get users
+ *     description: |
+ *       Returns user information for the authenticated user.
+ *       Administrators receive all users, while regular users receive
+ *       only their own user information.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Authentication required
+ *       404:
+ *         description: The authenticated user was not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: Failed to retrieve users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Failed to retrieve users
+ */
+router.get('/users', requireApiLogin, getUsers);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update a user
+ *     description: |
+ *       Updates an authenticated user's information.
+ *       Regular users can update only their own information and cannot
+ *       change their role. Administrators can update any user.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's MongoDB ObjectId.
+ *         schema:
+ *           type: string
+ *         example: 68c123456789abcdef123456
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 example: Yuki Tanaka
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: yuki.tanaka@example.com
+ *               role:
+ *                 type: string
+ *                 enum:
+ *                   - "1"
+ *                   - "2"
+ *                 example: "1"
+ *     responses:
+ *       200:
+ *         description: User updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID or user data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: The authenticated user is not authorized to update this user or change the user's role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to update user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.put('/users/:id', requireApiLogin, updateUserById);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: |
+ *       Deletes an authenticated user's account.
+ *       Regular users can delete only their own account.
+ *       Administrators can delete any user.
+ *
+ *       Password hashes are never included in the response.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The user's MongoDB ObjectId.
+ *         schema:
+ *           type: string
+ *         example: 68c123456789abcdef123456
+ *     responses:
+ *       200:
+ *         description: User deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid user ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Authentication required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: The authenticated user is not authorized to delete this user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to delete user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete('/users/:id', requireApiLogin, deleteUserById);
 
 /**
  * @openapi
@@ -78,18 +319,73 @@ const router = Router();
  * @openapi
  * /api/trips:
  *   get:
- *     summary: Get all trips
+ *     summary: Get a page of trips
  *     tags:
  *       - Trips
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number to return
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Number of trips per page
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *           enum: [central, northern, kansai, hokkaido]
+ *         description: Only return trips in this region
+ *       - in: query
+ *         name: season
+ *         schema:
+ *           type: string
+ *           enum: [spring, summer, autumn, winter]
+ *         description: Only return trips whose best season matches
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Case-insensitive keyword matched against trip names and descriptions
+ *
  *     responses:
  *       200:
- *         description: A list of trips
+ *         description: One page of trips with pagination metadata
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Trip'
+ *               type: object
+ *               properties:
+ *                 trips:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Trip'
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 totalTrips:
+ *                   type: integer
+ *                   example: 6
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 1
+ *       400:
+ *         description: Invalid region, season, page, or limit
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Failed to fetch trips
  *         content:
@@ -98,6 +394,85 @@ const router = Router();
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips', getAllTrips);
+
+/**
+ * @openapi
+ * /api/trips/{id}/schedules:
+ *   get:
+ *     summary: Get schedules for a trip
+ *     description: Returns all schedules for a trip, or schedules when the trip operates in the specified month.
+ *     tags:
+ *       - Schedules
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The trip's custom ID.
+ *         schema:
+ *           type: string
+ *         example: alpine-panorama
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         description: Month number used to filter schedules. Must be an integer from 1 to 12.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         example: 6
+ *     responses:
+ *       200:
+ *         description: Schedules retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   tripId:
+ *                     type: string
+ *                     example: alpine-panorama
+ *                   departureTime:
+ *                     type: string
+ *                     example: "08:30"
+ *                   arrivalTime:
+ *                     type: string
+ *                     example: "13:00"
+ *                   daysOfWeek:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example:
+ *                       - monday
+ *                       - wednesday
+ *                       - friday
+ *                   status:
+ *                     type: boolean
+ *                     example: true
+ *       400:
+ *         description: Invalid month parameter.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to fetch schedules.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/trips/:id/schedules', (req, res) => {
+    if (req.query.month !== undefined) {
+        return getSchedulesForTripAndMonth(req, res);
+    }
+
+    return getSchedulesForTrip(req, res);
+});
 
 /**
  * @openapi
@@ -280,18 +655,117 @@ router.get('/ticket-classes', (req, res) => {
  *         createdAt:
  *           type: string
  *           format: date-time
+ *     PageMeta:
+ *       type: object
+ *       description: Information about the query that produced a page of results.
+ *       properties:
+ *         totalItems:
+ *           type: integer
+ *           description: Total number of items matching the query across all pages.
+ *           example: 87
+ *         totalPages:
+ *           type: integer
+ *           example: 9
+ *         page:
+ *           type: integer
+ *           description: The page that was returned.
+ *           example: 1
+ *         limit:
+ *           type: integer
+ *           description: Maximum number of items per page.
+ *           example: 10
+ *         sortBy:
+ *           type: string
+ *           example: createdAt
+ *         sortOrder:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: desc
+ *         filters:
+ *           type: object
+ *           description: The filters applied to the query. Only filters that were supplied are included, so the object is empty when no filters are active.
+ *           properties:
+ *             ticketClass:
+ *               type: string
+ *               example: premium
+ *             startDate:
+ *               type: string
+ *               example: "2026-01-01"
+ *             endDate:
+ *               type: string
+ *               example: "2026-03-31"
  */
 
 /**
  * @openapi
  * /api/bookings:
  *   get:
- *     summary: Get all bookings
+ *     summary: Get a page of bookings
+ *     description: Returns one page of bookings plus metadata about the query. Bookings can be filtered by ticket class and by booking date (createdAt) range, and the filters apply before paging. Results are sorted by booking date, newest first, unless sortBy and sortOrder say otherwise.
  *     tags:
  *       - Bookings
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number to return, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of bookings per page.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         example: 10
+ *       - in: query
+ *         name: sortBy
+ *         required: false
+ *         description: Booking field to sort by.
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, ticketClass, selectedDay]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         required: false
+ *         description: Sort direction.
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *       - in: query
+ *         name: ticketClass
+ *         required: false
+ *         description: Only return bookings for this ticket class.
+ *         schema:
+ *           type: string
+ *           enum: [standard, premium, first]
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         description: Only return bookings made on or after this date (YYYY-MM-DD, UTC).
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         description: Only return bookings made on or before this date (YYYY-MM-DD, UTC). The whole day is included. Must not be earlier than startDate.
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2026-03-31"
  *     responses:
  *       200:
- *         description: A list of all bookings.
+ *         description: A page of bookings and metadata about the query. A page past the last one returns an empty bookings array.
  *         content:
  *           application/json:
  *             schema:
@@ -301,6 +775,16 @@ router.get('/ticket-classes', (req, res) => {
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Booking'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PageMeta'
+ *       400:
+ *         description: A paging, sorting or filter query parameter is invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: limit must be between 1 and 100
  *       500:
  *         description: Failed to fetch bookings
  *         content:
@@ -335,10 +819,11 @@ router.get('/bookings', getAllBookings);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error while fetching bookings.
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
  */
-router.get('/bookings/mine', requireApiLogin, getMyBookings);
 
 export default router;

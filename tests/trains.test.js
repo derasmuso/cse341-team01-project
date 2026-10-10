@@ -25,8 +25,8 @@ describe('GET /api/trains', () => {
         expect.objectContaining({
           id: 'series-e353',
           name: 'Series E353 Limited Express',
-          powerSource: 'Electric'
-        })
+          powerSource: 'Electric',
+        }),
       ])
     );
   });
@@ -35,7 +35,7 @@ describe('GET /api/trains', () => {
     await getDb().collection('trains').insertOne({
       id: 'test-express',
       name: 'Test Express',
-      operator: 'Test Railway'
+      operator: 'Test Railway',
     });
 
     const response = await request(app).get('/api/trains');
@@ -45,8 +45,8 @@ describe('GET /api/trains', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'test-express',
-          name: 'Test Express'
-        })
+          name: 'Test Express',
+        }),
       ])
     );
   });
