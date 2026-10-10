@@ -1,65 +1,54 @@
 <%- include('../partials/header') %>
 
-    <h1>Manage Users</h1>
+    <main class="admin-users-page">
+        <h1>Manage Users</h1>
 
-    <p id="users-message"></p>
+        <p id="users-message" role="status" aria-live="polite"></p>
 
-    <div id="users-container">
-        <p>Loading users...</p>
-    </div>
+        <div id="users-container">
+            <p>Loading users...</p>
+        </div>
 
-    <template id="user-card-template">
-        <article class="user-card">
-            <div class="user-card-view">
-                <h2 class="user-name"></h2>
+        <nav id="users-pagination" class="users-pagination" aria-label="User list pagination" hidden>
+            <button type="button" id="users-previous-page" disabled>
+                Previous
+            </button>
 
-                <p>
-                    <strong>Username:</strong>
-                    <span class="user-username"></span>
-                </p>
+            <span id="users-page-info">Page 1 of 1</span>
 
-                <p>
-                    <strong>Email:</strong>
-                    <span class="user-email"></span>
-                </p>
+            <button type="button" id="users-next-page" disabled>
+                Next
+            </button>
+        </nav>
+    </main>
 
-                <p>
-                    <strong>Role:</strong>
-                    <span class="user-role"></span>
-                </p>
+    <!-- Edit user modal -->
+    <dialog id="edit-user-modal" aria-labelledby="edit-user-title">
+        <div class="edit-user-modal-content">
+            <h2 id="edit-user-title">Edit User</h2>
 
-                <div class="user-actions">
-                    <button type="button" class="edit-user-button">
-                        Edit
-                    </button>
+            <form id="user-edit-form">
+                <input type="hidden" name="userId">
 
-                    <button type="button" class="delete-user-button">
-                        Delete
-                    </button>
-                </div>
-            </div>
-
-            <form class="user-edit-form" hidden>
                 <label>
                     Display Name
-                    <input type="text" name="displayName" class="edit-display-name" required>
+                    <input type="text" name="displayName" required>
                 </label>
 
                 <label>
                     Username
-                    <input type="text" name="username" class="edit-username" readonly aria-disabled="true"
-                        aria-readonly="true">
+                    <input type="text" name="username" readonly aria-readonly="true">
                 </label>
 
                 <label>
                     Email
-                    <input type="email" name="email" class="edit-email" required>
+                    <input type="email" name="email" required>
                 </label>
 
                 <label>
                     New Password
-                    <input type="password" name="password" class="edit-password" minlength="8"
-                        autocomplete="new-password" placeholder="Leave blank to keep current password">
+                    <input type="password" name="password" minlength="8" autocomplete="new-password"
+                        placeholder="Leave blank to keep current password">
                     <small>
                         Leave blank to keep the current password.
                         Enter at least 8 characters to change it.
@@ -68,24 +57,26 @@
 
                 <label>
                     Role
-                    <select name="role" class="edit-role">
+                    <select name="role" required>
                         <option value="1">Customer</option>
                         <option value="2">Admin</option>
                     </select>
                 </label>
 
+                <p id="edit-user-message" role="alert" aria-live="assertive"></p>
+
                 <div class="user-actions">
-                    <button type="submit">
+                    <button type="submit" id="save-user-button">
                         Save
                     </button>
 
-                    <button type="button" class="cancel-edit-button">
+                    <button type="button" id="cancel-edit-button">
                         Cancel
                     </button>
                 </div>
             </form>
-        </article>
-    </template>
+        </div>
+    </dialog>
 
     <script type="module" src="/js/admin-users.js"></script>
 
