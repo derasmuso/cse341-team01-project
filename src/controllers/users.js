@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 
 import {
-  getAllUsers,
+  getPaginatedUsers,
   getUserById,
   updateUser,
   deleteUser,
@@ -14,33 +14,103 @@ const allowedUpdateFields = ['displayName', 'email', 'password', 'role'];
 const validRoles = ['1', '2'];
 const ADMIN_ROLE = '2';
 
-/*******************************************
- * Get all users or a single user by ID
- * *************************************** */
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+const DEFAULT_SORT = 'username';
+const DEFAULT_ORDER = 'asc';
 
+const ALLOWED_SORT_FIELDS = ['username', 'displayName', 'email'];
+
+/*******************************************
+ * Validate pagination integers
+ *******************************************/
+function parsePositiveInteger(
+  value,
+  defaultValue,
+  max = Number.MAX_SAFE_INTEGER
+) {
+  if (value === undefined) {
+    return defaultValue;
+  }
+
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+    return null;
+  }
+
+  const parsedValue = Number(value);
+
+  if (
+    !Number.isSafeInteger(parsedValue) ||
+    parsedValue < 1 ||
+    parsedValue > max
+  ) {
+    return null;
+  }
+
+  return parsedValue;
+}
+
+/*******************************************
+ * Get paginated users
+ *******************************************/
 export async function getUsers(req, res, next) {
+  const page = parsePositiveInteger(req.query.page, DEFAULT_PAGE);
+  const limit = parsePositiveInteger(req.query.limit, DEFAULT_LIMIT, MAX_LIMIT);
+
+  if (page === null) {
+    return res.status(400).json({
+      message: 'Invalid page. Page must be a positive integer.',
+    });
+  }
+
+  if (limit === null) {
+    return res.status(400).json({
+      message: `Invalid limit. Limit must be an integer between 1 and ${MAX_LIMIT}.`,
+    });
+  }
+
+  const sort = req.query.sort ?? DEFAULT_SORT;
+  const order = req.query.order ?? DEFAULT_ORDER;
+
+  if (typeof sort !== 'string' || !ALLOWED_SORT_FIELDS.includes(sort)) {
+    return res.status(400).json({
+      message: `Invalid sort field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(', ')}.`,
+    });
+  }
+
+  if (typeof order !== 'string' || !['asc', 'desc'].includes(order)) {
+    return res.status(400).json({
+      message: 'Invalid order. Order must be either asc or desc.',
+    });
+  }
+
   try {
     /*
      * Admins can view all users.
+     * Regular users can only view their own account.
      */
-    if (req.user.role === ADMIN_ROLE) {
-      const users = await getAllUsers();
+    const filter = req.user.role === ADMIN_ROLE ? {} : { _id: req.user.id };
 
-      return res.status(200).json(users);
-    }
+    const result = await getPaginatedUsers({
+      page,
+      limit,
+      sort,
+      order,
+      filter,
+    });
 
     /*
-     * Regular users can only view their own information.
+     * Preserve the existing behavior when the authenticated
+     * user's account cannot be found.
      */
-    const user = await getUserById(req.user.id);
-
-    if (!user) {
+    if (req.user.role !== ADMIN_ROLE && result.pagination.totalItems === 0) {
       return res.status(404).json({
         message: 'User not found',
       });
     }
 
-    return res.status(200).json([user]);
+    return res.status(200).json(result);
   } catch (error) {
     return next(error);
   }
@@ -48,8 +118,7 @@ export async function getUsers(req, res, next) {
 
 /*******************************************
  * Update user by ID
- * *************************************** */
-
+ *******************************************/
 export async function updateUserById(req, res, next) {
   const { id } = req.params;
 
@@ -146,12 +215,6 @@ export async function updateUserById(req, res, next) {
       updateData.role = role;
     }
 
-    //For testing purposes
-    //Comment after test passes
-    // console.log("Logged-in user ID:", req.user.id);
-    // console.log("Requested user ID:", id);
-    // console.log("Submitted email:", req.body.email);
-
     const user = await updateUser(id, updateData);
 
     if (!user) {
@@ -199,8 +262,7 @@ export async function updateUserById(req, res, next) {
 
 /*******************************************
  * Delete user by ID
- * *************************************** */
-
+ *******************************************/
 export async function deleteUserById(req, res, next) {
   const { id } = req.params;
 
