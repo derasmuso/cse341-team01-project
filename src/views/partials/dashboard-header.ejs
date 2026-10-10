@@ -1,0 +1,10 @@
+<header class="dashboard-header">
+    <div class="dashboard-header-welcome">
+        <h1>
+            Welcome, <%= user.displayName %>
+        </h1>
+        <p>
+            <%= user.role==='2' ? 'Administrator' : 'Customer' %>
+        </p>
+    </div>
+</header>

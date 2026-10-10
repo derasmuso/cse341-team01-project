@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+    <%- include('../partials/dashboard-sidebar') %>
+
+    <main class="dashboard-main">
+        <%- include('../partials/dashboard-header') %>
+
+        <section class="dashboard-content">
+            <%- include(contentPartial) %>
+        </section>
+        
+    </main>
+</div>
+
+<%- include('../partials/footer') %>
