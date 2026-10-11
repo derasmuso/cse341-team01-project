@@ -12,12 +12,110 @@
     }
   ],
   "paths": {
+    "/api/trains": {
+      "get": {
+        "summary": "Get a paginated, searchable list of trains",
+        "description": "Returns a paginated list of trains. Supports keyword search on name/description, filtering by train type, and sorting by name.",
+        "tags": ["Trains"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "description": "Page number to return. Must be a positive integer.",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 },
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "description": "Number of trains per page. Maximum 50.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10 },
+            "example": 10
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "description": "Case-insensitive keyword that matches the train name or description.",
+            "schema": { "type": "string", "maxLength": 100 },
+            "example": "steam"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "description": "Exact match on the train's type field.",
+            "schema": { "type": "string" },
+            "example": "Limited Express"
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "description": "Sort order for results. `name` = A→Z, `-name` = Z→A.",
+            "schema": { "type": "string", "enum": ["name", "-name"], "default": "name" },
+            "example": "name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of trains with metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trains": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Train" }
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer", "example": 47 },
+                        "page": { "type": "integer", "example": 1 },
+                        "pageSize": { "type": "integer", "example": 10 },
+                        "totalPages": { "type": "integer", "example": 5 },
+                        "filters": {
+                          "type": "object",
+                          "properties": {
+                            "search": { "type": "string", "example": "steam" },
+                            "type": { "type": "string", "example": "Steam Excursion" },
+                            "sort": { "type": "string", "example": "name" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter (page, pageSize, search, or sort).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch trains",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trips": {
       "get": {
         "summary": "Get all trips",
-        "tags": [
-          "Trips"
-        ],
+        "tags": ["Trips"],
         "responses": {
           "200": {
             "description": "A list of trips",
@@ -25,9 +123,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Trip"
-                  }
+                  "items": { "$ref": "#/components/schemas/Trip" }
                 }
               }
             }
@@ -36,9 +132,75 @@
             "description": "Failed to fetch trips",
             "content": {
               "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/{id}/schedules": {
+      "get": {
+        "summary": "Get schedules for a trip",
+        "description": "Returns all schedules for a trip, or schedules when the trip operates in the specified month.",
+        "tags": ["Schedules"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The trip's custom ID.",
+            "schema": { "type": "string" },
+            "example": "alpine-panorama"
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "description": "Month number used to filter schedules. Must be an integer from 1 to 12.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 12 },
+            "example": 6
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedules retrieved successfully.",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 1 },
+                      "tripId": { "type": "string", "example": "alpine-panorama" },
+                      "departureTime": { "type": "string", "example": "08:30" },
+                      "arrivalTime": { "type": "string", "example": "13:00" },
+                      "daysOfWeek": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "example": ["monday", "wednesday", "friday"]
+                      },
+                      "status": { "type": "boolean", "example": true }
+                    }
+                  }
                 }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid month parameter.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch schedules.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
           }
@@ -48,17 +210,13 @@
     "/api/trips/{id}": {
       "get": {
         "summary": "Get one trip by id",
-        "tags": [
-          "Trips"
-        ],
+        "tags": ["Trips"],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "example": "alpine-panorama",
             "description": "The trip's custom id"
           }
@@ -68,9 +226,7 @@
             "description": "The matching trip",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Trip"
-                }
+                "schema": { "$ref": "#/components/schemas/Trip" }
               }
             }
           },
@@ -78,9 +234,7 @@
             "description": "Trip not found",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
           },
@@ -88,397 +242,48 @@
             "description": "Failed to fetch trip",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/trips/{id}/schedules": {
-      "get": {
-        "summary": "Get schedules for a trip, optionally filtered by month",
-        "tags": [
-          "Schedules"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "month",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 12
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Matching schedules",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Schedule"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid month"
-          }
-        }
-      }
-    },
-    "/api/stations": {
-      "get": {
-        "summary": "Get all stations",
-        "tags": [
-          "Stations"
-        ],
-        "responses": {
-          "200": {
-            "description": "Station list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Station"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/stations/{id}": {
-      "get": {
-        "summary": "Get a station by its id",
-        "tags": [
-          "Stations"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Station details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Station"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Station not found"
           }
         }
       }
     },
     "/api/ticket-classes": {
       "get": {
-        "summary": "Get ticket classes, optionally available on a day",
-        "tags": [
-          "Ticket Classes"
-        ],
+        "summary": "Get ticket classes",
+        "description": "Returns all ticket classes, or only the ticket classes available on the requested day when the day query parameter is provided.",
+        "tags": ["Ticket Classes"],
         "parameters": [
           {
             "in": "query",
             "name": "day",
             "required": false,
+            "description": "Day of the week used to filter available ticket classes.",
             "schema": {
               "type": "string",
-              "enum": [
-                "monday",
-                "tuesday",
-                "wednesday",
-                "thursday",
-                "friday",
-                "saturday",
-                "sunday"
-              ]
-            }
+              "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+            },
+            "example": "monday"
           }
         ],
         "responses": {
           "200": {
-            "description": "Ticket class list",
+            "description": "Ticket classes retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TicketClass"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid day"
-          }
-        }
-      }
-    },
-    "/api/bookings": {
-      "get": {
-        "summary": "Get all bookings (admin only)",
-        "tags": [
-          "Bookings"
-        ],
-        "responses": {
-          "200": {
-            "description": "Booking list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Booking"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Admin role required"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Trip": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "alpine-panorama"
-          },
-          "name": {
-            "type": "string",
-            "example": "Alpine Panorama Express"
-          },
-          "description": {
-            "type": "string",
-            "example": "Journey through the Japanese Alps with stunning mountain views and traditional villages."
-          },
-          "region": {
-            "type": "string",
-            "enum": [
-              "central",
-              "northern",
-              "kansai",
-              "hokkaido"
-            ],
-            "example": "central"
-          },
-          "startStation": {
-            "type": "string",
-            "example": "nagoya"
-          },
-          "endStation": {
-            "type": "string",
-            "example": "toyama"
-          },
-          "duration": {
-            "type": "string",
-            "example": "4.5 hours"
-          },
-          "distance": {
-            "type": "number",
-            "example": 180
-          },
-          "highlights": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": [
-              "Mount Tateyama views",
-              "Hida River gorge"
-            ]
-          },
-          "bestSeason": {
-            "type": "string",
-            "enum": [
-              "spring",
-              "summer",
-              "autumn",
-              "winter"
-            ],
-            "example": "autumn"
-          },
-          "operatingMonths": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "example": [
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11
-            ]
-          },
-          "imageUrl": {
-            "type": "string",
-            "example": "/images/routes/alpine-panorama.png"
-          }
-        }
-      },
-      "Schedule": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "example": 1
-          },
-          "tripId": {
-            "type": "string",
-            "example": "alpine-panorama"
-          },
-          "departureTime": {
-            "type": "string",
-            "example": "08:30"
-          },
-          "arrivalTime": {
-            "type": "string",
-            "example": "13:00"
-          },
-          "daysOfWeek": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Station": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "nagoya"
-          },
-          "name": {
-            "type": "string",
-            "example": "Nagoya Station"
-          },
-          "prefecture": {
-            "type": "string",
-            "example": "Aichi"
-          },
-          "region": {
-            "type": "string",
-            "example": "central"
-          },
-          "facilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "TicketClass": {
-        "type": "object",
-        "properties": {
-          "class": {
-            "type": "string",
-            "example": "standard"
-          },
-          "name": {
-            "type": "string",
-            "example": "Standard Class"
-          },
-          "pricePerKm": {
-            "type": "number",
-            "example": 80
-          },
-          "availableDays": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Booking": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "JRABC12345"
-          },
-          "tripId": {
-            "type": "string"
-          },
-          "scheduleId": {
-            "type": "string"
-          },
-          "ticketClass": {
-            "type": "string"
-          },
-          "selectedDay": {
-            "type": "string"
-          },
-          "passengers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  },
-  "tags": []
-}
+                    "type": "object",
+                    "properties": {
+                      "class": {
+                        "type": "string",
+                        "enum": ["standard", "premium", "first"],
+                        "example": "standard"
+                      },
+                      "pricePerKm": { "type": "number", "example": 80 },
+                      "amenities": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "example": ["Comfortable seats",

@@ -1,32 +1,57 @@
-import {
-    getTrainById as findTrainById,
-    getAllTrains as findAllTrains,
-} from "../models/trains.js";
-export async function getTrainById(req, res) {
-    try {
-        const { id } = req.params;
-        const train = await findTrainById(id);
-        if (!train) {
-            return res.status(404).json({
-                error: "Train not found",
-            });
-        }
-        return res.status(200).json(train);
-    } catch (error) {
-        console.error("Error fetching train:", error);
-        return res.status(500).json({
-            error: "Failed to fetch train",
-        });
-    }
+// src/controllers/trains.js
+import { getDb } from '../db/connect.js';
+
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 50;
+
+/**
+ * Parse a query value into a positive integer.
+ * Returns `fallback` when the value is missing/empty.
+ * Returns `null` when the value is present but invalid.
+ */
+function parsePositiveInt(value, fallback) {
+  if (value === undefined || value === '') return fallback;
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < 1) return null;
+  return n;
 }
-export async function getAllTrains(req, res) {
-    try {
-        const trains = await findAllTrains();
-        return res.status(200).json(trains);
-    } catch (error) {
-        console.error("Error fetching trains:", error);
-        return res.status(500).json({
-            error: "Failed to fetch trains",
-        });
+
+const trainsPage = (req, res) => {
+  res.render('trains', { title: 'Trains' });
+};
+
+const trainsApi = async (req, res, next) => {
+  try {
+    const page = parsePositiveInt(req.query.page, 1);
+    const pageSize = parsePositiveInt(req.query.pageSize, DEFAULT_PAGE_SIZE);
+
+    if (page === null) {
+      return res.status(400).json({ error: 'page must be a positive integer' });
     }
-}
+    if (pageSize === null || pageSize > MAX_PAGE_SIZE) {
+      return res
+        .status(400)
+        .json({ error: `pageSize must be an integer between 1 and ${MAX_PAGE_SIZE}` });
+    }
+
+    const collection = getDb().collection('trains');
+    const total = await collection.countDocuments({});
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const skip = (page - 1) * pageSize;
+
+    const trains = await collection
+      .find({})
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    return res.json({
+      trains,
+      metadata: { total, page, pageSize, totalPages },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { trainsApi, trainsPage };

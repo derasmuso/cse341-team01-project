@@ -10,8 +10,15 @@
 <section class="trains-catalog">
     <div class="trains-state" id="trains-loading">Loading trains...</div>
     <div class="trains-state trains-error" id="trains-error" hidden></div>
+    <div class="trains-state" id="trains-empty" hidden>No trains match your search.</div>
 
     <div class="trains-grid" id="trains-list"></div>
+
+    <nav class="trains-pagination" id="trains-pagination" hidden aria-label="Trains pagination">
+        <button type="button" id="trains-prev" class="trains-page-btn">Previous</button>
+        <span id="trains-page-indicator" class="trains-page-indicator"></span>
+        <button type="button" id="trains-next" class="trains-page-btn">Next</button>
+    </nav>
 
     <template id="train-card-template">
         <article class="train-card">

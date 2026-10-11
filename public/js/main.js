@@ -39,19 +39,46 @@ const hookTrainsCatalog = async () => {
     const templateEl = document.getElementById('train-card-template');
     const loadingEl = document.getElementById('trains-loading');
     const errorEl = document.getElementById('trains-error');
+    const emptyEl = document.getElementById('trains-empty');
 
     if (!listEl || !templateEl) {
         return;
     }
 
-    try {
-        const response = await fetch('/api/trains');
-        if (!response.ok) {
-            throw new Error(`Failed to load trains (${response.status})`);
-        }
+    const searchEl = document.getElementById('trains-search');
+    const typeEl = document.getElementById('trains-type-filter');
+    const sortEl = document.getElementById('trains-sort');
+    const paginationEl = document.getElementById('trains-pagination');
+    const prevBtn = document.getElementById('trains-prev');
+    const nextBtn = document.getElementById('trains-next');
+    const indicatorEl = document.getElementById('trains-page-indicator');
 
-        const payload = await response.json();
-        const trains = payload.trains || [];
+    const PAGE_SIZE = 10;
+    const state = { page: 1, search: '', type: '', sort: 'name', totalPages: 1 };
+
+    const buildUrl = () => {
+        const params = new URLSearchParams();
+        params.set('page', String(state.page));
+        params.set('pageSize', String(PAGE_SIZE));
+        if (state.search) params.set('search', state.search);
+        if (state.type) params.set('type', state.type);
+        if (state.sort) params.set('sort', state.sort);
+        return `/api/trains?${params.toString()}`;
+    };
+
+    const populateTypeFilter = (types) => {
+        if (!typeEl || typeEl.dataset.populated === 'true') return;
+        const unique = [...new Set(types)].filter(Boolean).sort();
+        unique.forEach((value) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            typeEl.appendChild(option);
+        });
+        typeEl.dataset.populated = 'true';
+    };
+
+    const renderCards = (trains) => {
         const fragment = document.createDocumentFragment();
 
         trains.forEach((train) => {
@@ -74,16 +101,155 @@ const hookTrainsCatalog = async () => {
         });
 
         listEl.replaceChildren(fragment);
+    };
+
+    const load = async () => {
+        if (loadingEl) loadingEl.hidden = false;
+        if (errorEl) errorEl.hidden = true;
+        if (emptyEl) emptyEl.hidden = true;
+
+        try {
+            const response = await fetch(buildUrl());
+            if (!response.ok) {
+                throw new Error(`Failed to load trains (${response.status})`);
+            }
+
+            const payload = await response.json();
+            const trains = payload.trains || [];
+            const meta = payload.metadata || { totalPages: 1, page: 1 };
+
+            populateTypeFilter(trains.map((t) => t.type));
+            renderCards(trains);
+
+            state.totalPages = meta.totalPages || 1;
+
+            if (paginationEl) paginationEl.hidden = false;
+            if (indicatorEl) indicatorEl.textContent = `Page ${meta.page} of ${meta.totalPages}`;
+            if (prevBtn) prevBtn.disabled = meta.page <= 1;
+            if (nextBtn) nextBtn.disabled = meta.page >= meta.totalPages;
+
+            if (trains.length === 0 && emptyEl) {
+                emptyEl.hidden = false;
+            }
+        } catch (error) {
+            if (errorEl) {
+                errorEl.hidden = false;
+                errorEl.textContent = 'Unable to load trains right now. Please try again in a moment.';
+            }
+        } finally {
+            if (loadingEl) loadingEl.hidden = true;
+        }
+    };
+
+    // ---- Pagination buttons ----
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (state.page > 1) {
+                state.page -= 1;
+                load();
+            }
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (state.page < state.totalPages) {
+                state.page += 1;
+                load();
+            }
+        });
+    }
+
+    // ---- Debounced search ----
+    if (searchEl) {
+        let debounceId;
+        searchEl.addEventListener('input', () => {
+            clearTimeout(debounceId);
+            debounceId = setTimeout(() => {
+                state.search = searchEl.value.trim();
+                state.page = 1;
+                load();
+            }, 300);
+        });
+    }
+
+    // ---- Type filter ----
+    if (typeEl) {
+        typeEl.addEventListener('change', () => {
+            state.type = typeEl.value;
+            state.page = 1;
+            load();
+        });
+    }
+
+    // ---- Sort ----
+    if (sortEl) {
+        sortEl.addEventListener('change', () => {
+            state.sort = sortEl.value;
+            state.page = 1;
+            load();
+        });
+    }
+
+    await load();
+};
+
+const hookBookingsAdmin = async () => {
+    const tableEl = document.getElementById('bookings-table');
+    const listEl = document.getElementById('bookings-list');
+    const templateEl = document.getElementById('booking-row-template');
+    const loadingEl = document.getElementById('bookings-loading');
+    const errorEl = document.getElementById('bookings-error');
+    const emptyEl = document.getElementById('bookings-empty');
+
+    if (!tableEl || !listEl || !templateEl) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/bookings');
+        if (!response.ok) {
+            throw new Error(`Failed to load bookings (${response.status})`);
+        }
+
+        const payload = await response.json();
+        const bookings = payload.bookings || [];
+
         if (loadingEl) {
             loadingEl.hidden = true;
         }
+
+        if (bookings.length === 0) {
+            if (emptyEl) {
+                emptyEl.hidden = false;
+            }
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        bookings.forEach((booking) => {
+            const row = templateEl.content.cloneNode(true);
+            const passengerCount = Array.isArray(booking.passengers) ? booking.passengers.length : 0;
+            const bookedOn = booking.createdAt ? new Date(booking.createdAt).toLocaleString() : '';
+
+            row.querySelector('[data-field="id"]').textContent = booking.id;
+            row.querySelector('[data-field="ticketClass"]').textContent = booking.ticketClass;
+            row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
+            row.querySelector('[data-field="passengers"]').textContent = passengerCount;
+            row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
+
+            fragment.appendChild(row);
+        });
+
+        listEl.replaceChildren(fragment);
+        tableEl.hidden = false;
     } catch (error) {
         if (loadingEl) {
             loadingEl.hidden = true;
         }
         if (errorEl) {
             errorEl.hidden = false;
-            errorEl.textContent = 'Unable to load trains right now. Please try again in a moment.';
+            errorEl.textContent = 'Unable to load bookings right now. Please try again in a moment.';
         }
     }
 };
@@ -172,126 +338,56 @@ const hookTripsList = async () => {
     }
 };
 
-const hookTripSchedules = async () => {
-    const section = document.querySelector('[data-trip-schedules]');
-    const listEl = document.getElementById('schedules-list');
-    const templateEl = document.getElementById('schedule-card-template');
-    const loadingEl = document.getElementById('schedules-loading');
-    const errorEl = document.getElementById('schedules-error');
-    const emptyEl = document.getElementById('schedules-empty');
-    const monthSelect = document.getElementById('schedule-month');
+const hookUserDashboard = async () => {
+    const tableEl = document.getElementById('my-bookings-table');
+    const listEl = document.getElementById('my-bookings-list');
+    const templateEl = document.getElementById('my-booking-row-template');
+    const loadingEl = document.getElementById('my-bookings-loading');
+    const errorEl = document.getElementById('my-bookings-error');
+    const emptyEl = document.getElementById('my-bookings-empty');
 
-    if (!section || !listEl || !templateEl) return;
+    if (!tableEl || !listEl || !templateEl) {
+        return;
+    }
 
-    const loadSchedules = async () => {
-        loadingEl.hidden = false;
-        errorEl.hidden = true;
-        emptyEl.hidden = true;
-        try {
-            const month = monthSelect.value;
-            const query = month === 'all' ? '' : `?month=${encodeURIComponent(month)}`;
-            const response = await fetch(`/api/trips/${encodeURIComponent(section.dataset.tripId)}/schedules${query}`);
-            if (!response.ok) throw new Error(`Failed to load schedules (${response.status})`);
-            const schedules = await response.json();
-            const fragment = document.createDocumentFragment();
-
-            schedules.forEach((schedule) => {
-                const card = templateEl.content.cloneNode(true);
-                card.querySelector('[data-field="departure"]').textContent = schedule.departureTime;
-                card.querySelector('[data-field="arrival"]').textContent = schedule.arrivalTime;
-                card.querySelector('[data-field="link"]').href = `/trips/booking/${schedule.id}`;
-                const days = card.querySelector('[data-field="days"]');
-                schedule.daysOfWeek.forEach((day) => {
-                    const badge = document.createElement('span');
-                    badge.className = 'day-badge';
-                    badge.textContent = day.slice(0, 3);
-                    days.appendChild(badge);
-                });
-                fragment.appendChild(card);
-            });
-
-            listEl.replaceChildren(fragment);
-            emptyEl.hidden = schedules.length > 0;
-        } catch (error) {
-            errorEl.textContent = 'Unable to load schedules right now.';
-            errorEl.hidden = false;
-            listEl.replaceChildren();
-        } finally {
-            loadingEl.hidden = true;
-        }
-    };
-
-    monthSelect.addEventListener('change', loadSchedules);
-    await loadSchedules();
-};
-
-const hookStationDetails = () => {
-    document.querySelectorAll('.station-detail-toggle').forEach((button) => {
-        button.addEventListener('click', async () => {
-            const detail = button.nextElementSibling;
-            if (!detail.hidden) {
-                detail.hidden = true;
-                button.setAttribute('aria-expanded', 'false');
-                return;
-            }
-
-            detail.hidden = false;
-            button.setAttribute('aria-expanded', 'true');
-            if (detail.dataset.loaded === 'true') return;
-            detail.textContent = 'Loading station information...';
-
-            try {
-                const response = await fetch(`/api/stations/${encodeURIComponent(button.dataset.stationId)}`);
-                if (!response.ok) throw new Error(`Failed to load station (${response.status})`);
-                const station = await response.json();
-                detail.replaceChildren();
-                const location = document.createElement('p');
-                location.textContent = `${station.prefecture} · ${station.region}`;
-                const description = document.createElement('p');
-                description.textContent = station.description;
-                const facilities = document.createElement('p');
-                facilities.textContent = `Facilities: ${station.facilities.join(', ')}`;
-                detail.append(location, description, facilities);
-                detail.dataset.loaded = 'true';
-            } catch (error) {
-                detail.textContent = 'Unable to load station information.';
-            }
-        });
-    });
-};
-
-const hookBookingsCatalog = async () => {
-    const listEl = document.getElementById('bookings-list');
-    const templateEl = document.getElementById('booking-row-template');
-    const loadingEl = document.getElementById('bookings-loading');
-    const errorEl = document.getElementById('bookings-error');
-    const emptyEl = document.getElementById('bookings-empty');
-
-    if (!listEl || !templateEl) return;
     try {
-        const response = await fetch('/api/bookings');
-        if (!response.ok) throw new Error(`Failed to load bookings (${response.status})`);
-        const bookings = await response.json();
+        const response = await fetch('/api/bookings/mine');
+        if (!response.ok) {
+            throw new Error(`Failed to load bookings (${response.status})`);
+        }
+
+        const payload = await response.json();
+        const bookings = payload.bookings || [];
+
+        loadingEl.hidden = true;
+
+        if (bookings.length === 0) {
+            emptyEl.hidden = false;
+            return;
+        }
+
         const fragment = document.createDocumentFragment();
+
         bookings.forEach((booking) => {
             const row = templateEl.content.cloneNode(true);
-            row.querySelector('[data-field="reference"]').textContent = booking.id;
-            row.querySelector('[data-field="trip"]').textContent = booking.tripId;
-            row.querySelector('[data-field="travel-day"]').textContent = booking.selectedDay;
-            row.querySelector('[data-field="ticket"]').textContent = booking.ticketClass;
-            row.querySelector('[data-field="passengers"]').textContent = booking.passengers
-                .map((passenger) => `${passenger.firstName} ${passenger.lastName}`)
-                .join(', ');
-            row.querySelector('[data-field="created"]').textContent = new Date(booking.createdAt).toLocaleDateString();
+            const passengerCount = Array.isArray(booking.passengers) ? booking.passengers.length : 0;
+            const bookedOn = booking.createdAt ? new Date(booking.createdAt).toLocaleString() : '';
+
+            row.querySelector('[data-field="id"]').textContent = booking.id;
+            row.querySelector('[data-field="ticketClass"]').textContent = booking.ticketClass;
+            row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
+            row.querySelector('[data-field="passengers"]').textContent = passengerCount;
+            row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
+
             fragment.appendChild(row);
         });
+
         listEl.replaceChildren(fragment);
-        emptyEl.hidden = bookings.length > 0;
+        tableEl.hidden = false;
     } catch (error) {
-        errorEl.textContent = 'Unable to load bookings. Check your admin access and try again.';
-        errorEl.hidden = false;
-    } finally {
         loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = 'Unable to load your bookings right now. Please try again in a moment.';
     }
 };
 
@@ -299,8 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hookRegionSorter();
     hookSeasonSorter();
     hookTrainsCatalog();
+    hookBookingsAdmin();
     hookTripsList();
-    hookTripSchedules();
-    hookStationDetails();
-    hookBookingsCatalog();
+    hookUserDashboard();
 });
