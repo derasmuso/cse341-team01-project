@@ -29,20 +29,52 @@
         <main class="dashboard-main">
 
             <section class="dashboard-hero">
-                <h1>Welcome, <%= user.displayName %>
-                </h1>
-                <p>Every booking made across the Kizuna Rail network.</p>
+                <h1>Welcome, <%= user.displayName %></h1>
+                <p>Your trips, plus every booking across the network.</p>
+            </section>
+
+            <section class="dashboard-bookings">
+                <h2>My bookings</h2>
+
+                <div class="dashboard-state" id="my-bookings-loading">Loading your bookings...</div>
+                <div class="dashboard-state dashboard-error" id="my-bookings-error" hidden></div>
+                <div class="dashboard-state" id="my-bookings-empty" hidden>
+                    You are not a passenger on any bookings yet.
+                </div>
+
+                <table class="dashboard-table" id="my-bookings-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Confirmation #</th>
+                            <th>Ticket Class</th>
+                            <th>Travel Day</th>
+                            <th>Passengers</th>
+                            <th>Booked On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="my-bookings-list"></tbody>
+                </table>
+
+                <template id="my-booking-row-template">
+                    <tr>
+                        <td data-field="id"></td>
+                        <td data-field="ticketClass"></td>
+                        <td data-field="selectedDay"></td>
+                        <td data-field="passengers"></td>
+                        <td data-field="createdAt"></td>
+                        <td>
+                            <button type="button" class="booking-delete" data-field="delete">Delete</button>
+                        </td>
+                    </tr>
+                </template>
             </section>
 
             <section class="dashboard-bookings">
                 <h2>All bookings</h2>
 
-                <div class="dashboard-state" id="bookings-loading">
-                    Loading bookings...
-                </div>
-
+                <div class="dashboard-state" id="bookings-loading">Loading bookings...</div>
                 <div class="dashboard-state dashboard-error" id="bookings-error" hidden></div>
-
                 <div class="dashboard-state" id="bookings-empty" hidden>
                     No bookings have been made yet.
                 </div>
@@ -55,9 +87,9 @@
                             <th>Travel Day</th>
                             <th>Passengers</th>
                             <th>Booked On</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-
                     <tbody id="bookings-list"></tbody>
                 </table>
 
@@ -75,6 +107,9 @@
                         <td data-field="selectedDay"></td>
                         <td data-field="passengers"></td>
                         <td data-field="createdAt"></td>
+                        <td>
+                            <button type="button" class="booking-delete" data-field="delete">Delete</button>
+                        </td>
                     </tr>
                 </template>
             </section>

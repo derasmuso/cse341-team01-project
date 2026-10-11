@@ -41,8 +41,7 @@
                     <li><a href="/404">404</a></li>
                     <li><a href="/500">500</a></li>
 <% if (user) { %>
-                        <li><a href="<%= user.role === 'admin' ? '/admin/dashboard' : '/dashboard' %>">Dashboard</a></li>
-                        <li>
+                            <li><a href="<%= user.role === '2' ? '/admin/dashboard' : '/dashboard' %>">Dashboard</a></li>                               <li>
                             <form method="POST" action="/logout">
                                 <button type="submit">Log out</button>
                             </form>

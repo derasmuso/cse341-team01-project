@@ -404,45 +404,77 @@ const hookUserDashboard = async () => {
         return;
     }
 
-    try {
-        const response = await fetch('/api/bookings/mine');
-        if (!response.ok) {
-            throw new Error(`Failed to load bookings (${response.status})`);
+    const loadMyBookings = async () => {
+        try {
+            const response = await fetch('/api/bookings/mine');
+            if (!response.ok) {
+                throw new Error(`Failed to load bookings (${response.status})`);
+            }
+
+            const payload = await response.json();
+            const bookings = payload.bookings || [];
+
+            loadingEl.hidden = true;
+            errorEl.hidden = true;
+
+            if (bookings.length === 0) {
+                tableEl.hidden = true;
+                emptyEl.hidden = false;
+                return;
+            }
+
+            emptyEl.hidden = true;
+
+            const fragment = document.createDocumentFragment();
+
+            bookings.forEach((booking) => {
+                const row = templateEl.content.cloneNode(true);
+                const passengerCount = Array.isArray(booking.passengers) ? booking.passengers.length : 0;
+                const bookedOn = booking.createdAt ? new Date(booking.createdAt).toLocaleString() : '';
+
+                row.querySelector('[data-field="id"]').textContent = booking.id;
+                row.querySelector('[data-field="ticketClass"]').textContent = booking.ticketClass;
+                row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
+                row.querySelector('[data-field="passengers"]').textContent = passengerCount;
+                row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
+
+                const deleteButton = row.querySelector('[data-field="delete"]');
+                if (deleteButton) {
+                    deleteButton.addEventListener('click', async () => {
+                        deleteButton.disabled = true;
+
+                        try {
+                            const deleteResponse = await fetch(
+                                `/api/bookings/${encodeURIComponent(booking.id)}`,
+                                { method: 'DELETE' }
+                            );
+                            if (!deleteResponse.ok) {
+                                throw new Error(`Failed to delete booking (${deleteResponse.status})`);
+                            }
+                            // Reload so "My bookings" and "All bookings" both refresh.
+                            window.location.reload();
+                        } catch (error) {
+                            deleteButton.disabled = false;
+                            errorEl.hidden = false;
+                            errorEl.textContent = error.message
+                                || 'Unable to delete the booking right now. Please try again.';
+                        }
+                    });
+                }
+
+                fragment.appendChild(row);
+            });
+
+            listEl.replaceChildren(fragment);
+            tableEl.hidden = false;
+        } catch (error) {
+            loadingEl.hidden = true;
+            errorEl.hidden = false;
+            errorEl.textContent = 'Unable to load your bookings right now. Please try again in a moment.';
         }
+    };
 
-        const payload = await response.json();
-        const bookings = payload.bookings || [];
-
-        loadingEl.hidden = true;
-
-        if (bookings.length === 0) {
-            emptyEl.hidden = false;
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-
-        bookings.forEach((booking) => {
-            const row = templateEl.content.cloneNode(true);
-            const passengerCount = Array.isArray(booking.passengers) ? booking.passengers.length : 0;
-            const bookedOn = booking.createdAt ? new Date(booking.createdAt).toLocaleString() : '';
-
-            row.querySelector('[data-field="id"]').textContent = booking.id;
-            row.querySelector('[data-field="ticketClass"]').textContent = booking.ticketClass;
-            row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
-            row.querySelector('[data-field="passengers"]').textContent = passengerCount;
-            row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
-
-            fragment.appendChild(row);
-        });
-
-        listEl.replaceChildren(fragment);
-        tableEl.hidden = false;
-    } catch (error) {
-        loadingEl.hidden = true;
-        errorEl.hidden = false;
-        errorEl.textContent = 'Unable to load your bookings right now. Please try again in a moment.';
-    }
+    await loadMyBookings();
 };
 
 document.addEventListener('DOMContentLoaded', () => {

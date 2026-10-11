@@ -311,25 +311,39 @@ export async function getMyBookings(req, res) {
  */
 const ADMIN_ROLE = '2';
 
-const isAdmin = (user) => user.role === ADMIN_ROLE;
-
 /**
- * Checks whether any passenger on the booking has the given email address.
- * Passenger emails are stored lowercase, but the comparison is
- * case-insensitive to be safe.
+ * Returns true only when the session belongs to an administrator.
  */
-const bookingIncludesEmail = (booking, email) =>
-  booking.passengers.some(
-    (passenger) =>
-      passenger.email.toLowerCase() === String(email).toLowerCase()
-  );
+const isAdmin = (user) => user?.role === ADMIN_ROLE;
 
 /**
- * A booking may be read or modified by administrators, or by the customer
- * whose email matches one of the passengers on the booking.
+ * Checks whether a booking includes a passenger with the given email.
+ * Missing emails and malformed passenger data never grant access.
+ */
+const bookingIncludesEmail = (booking, email) => {
+  if (typeof email !== 'string' || !email.trim()) {
+    return false;
+  }
+
+  if (!Array.isArray(booking?.passengers)) {
+    return false;
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  return booking.passengers.some(
+    (passenger) =>
+      typeof passenger?.email === 'string' &&
+      passenger.email.trim().toLowerCase() === normalizedEmail
+  );
+};
+
+/**
+ * Administrators can access any booking.
+ * Customers can only access bookings containing their email.
  */
 const canAccessBooking = (user, booking) =>
-  isAdmin(user) || bookingIncludesEmail(booking, user.email);
+  isAdmin(user) || bookingIncludesEmail(booking, user?.email);
 
 const REQUIRED_BOOKING_FIELDS = [
   'scheduleId',
