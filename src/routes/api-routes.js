@@ -3,26 +3,23 @@
 import { Router } from 'express';
 
 import {
-    getAllTicketClasses,
-    getTicketClassesForDay,
+  getAllTicketClasses,
+  getTicketClassesForDay,
 } from '../controllers/ticket-classes.js';
 
 import { getAllTrips, getTripById } from '../controllers/trips.js';
 
 import {
-    getSchedulesForTrip,
-    getSchedulesForTripAndMonth,
+  getSchedulesForTrip,
+  getSchedulesForTripAndMonth,
 } from '../controllers/schedules.js';
 
-import {
-    getAllBookings,
-    getMyBookings,
-} from '../controllers/bookings.js';
+import { getAllBookings, getMyBookings } from '../controllers/bookings.js';
 
 import {
-    getUsers,
-    updateUserById,
-    deleteUserById,
+  getUsers,
+  updateUserById,
+  deleteUserById,
 } from '../controllers/users.js';
 
 import { requireApiLogin } from '../middleware/auth.js';
@@ -72,24 +69,111 @@ const router = Router();
  * @openapi
  * /api/users:
  *   get:
- *     summary: Get users
+ *     summary: Get a paginated list of users
  *     description: |
- *       Returns user information for the authenticated user.
- *       Administrators receive all users, while regular users receive
- *       only their own user information.
- *
- *       Password hashes are never included in the response.
+ *       Returns a page of users that the authenticated user is
+ *       authorized to access. Administrators can view all users,
+ *       while regular users can view only their own information.
+ *       Password hashes are never included.
  *     tags:
  *       - Users
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of users per page; maximum 100.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         example: 10
+ *       - in: query
+ *         name: sort
+ *         required: false
+ *         description: Field used to sort the results.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - username
+ *             - displayName
+ *             - email
+ *           default: username
+ *         example: username
+ *       - in: query
+ *         name: order
+ *         required: false
+ *         description: Sort direction.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - asc
+ *             - desc
+ *           default: asc
+ *         example: asc
  *     responses:
  *       200:
- *         description: Users retrieved successfully.
+ *         description: Users retrieved successfully with pagination metadata.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               type: object
+ *               required:
+ *                 - data
+ *                 - pagination
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 pagination:
+ *                   type: object
+ *                   required:
+ *                     - page
+ *                     - limit
+ *                     - totalItems
+ *                     - totalPages
+ *                     - hasNextPage
+ *                     - hasPreviousPage
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of authorized users.
+ *                       example: 25
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 3
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       example: true
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       example: false
+ *       400:
+ *         description: Invalid pagination or sorting parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               message: "Invalid page. Page must be a positive integer."
  *       401:
  *         description: Authentication required.
  *         content:
@@ -99,7 +183,7 @@ const router = Router();
  *             example:
  *               error: Authentication required
  *       404:
- *         description: The authenticated user was not found.
+ *         description: The authenticated user's account was not found.
  *         content:
  *           application/json:
  *             schema:
@@ -112,8 +196,6 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *             example:
- *               error: Failed to retrieve users
  */
 router.get('/users', requireApiLogin, getUsers);
 
@@ -467,11 +549,11 @@ router.get('/trips', getAllTrips);
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/trips/:id/schedules', (req, res) => {
-    if (req.query.month !== undefined) {
-        return getSchedulesForTripAndMonth(req, res);
-    }
+  if (req.query.month !== undefined) {
+    return getSchedulesForTripAndMonth(req, res);
+  }
 
-    return getSchedulesForTrip(req, res);
+  return getSchedulesForTrip(req, res);
 });
 
 /**
@@ -603,11 +685,11 @@ router.get('/trips/:id', getTripById);
  *                   example: Internal server error
  */
 router.get('/ticket-classes', (req, res) => {
-    if (req.query.day !== undefined) {
-        return getTicketClassesForDay(req, res);
-    }
+  if (req.query.day !== undefined) {
+    return getTicketClassesForDay(req, res);
+  }
 
-    return getAllTicketClasses(req, res);
+  return getAllTicketClasses(req, res);
 });
 
 /**

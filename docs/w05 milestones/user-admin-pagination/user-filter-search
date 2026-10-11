@@ -1,0 +1,78 @@
+# User Search and Role Filter
+
+Goal
+Add keyword search and role filtering to the user list. Search and filtering must work together with the pagination introduced in PR 1.
+
+API
+Endpoint: GET /api/users
+
+Add these query parameters:
+
+q — keyword used to search display name, username, or email.
+role — filter users by role.
+page — page number; default: 1.
+limit — users per page; default: 10.
+sort — sorting field; default: username.
+order — asc or desc; default: asc.
+Search and role filtering must be combinable. Pagination metadata must reflect the filtered/search results, not the total number of users.
+
+Example:
+
+GET /api/users?q=john&role=1&page=1&limit=10
+
+Search Behavior
+The q parameter should search across:
+
+displayName
+username
+email
+The search should be case-insensitive.
+
+If no users match the search or filter, return 200 with an empty data array and appropriate pagination metadata.
+
+Role Filter
+The role parameter filters users by their role.
+
+The filter should use the application's existing role values and should not expose or modify protected user information.
+
+Response
+The existing paginated response format from PR 1 remains unchanged:
+
+{
+"data": [],
+"pagination": {
+"page": 1,
+"limit": 10,
+"totalItems": 5,
+"totalPages": 1,
+"hasNextPage": false,
+"hasPreviousPage": false
+}
+}
+
+User Page
+The /users page must provide:
+
+A keyword search input.
+A role filter.
+Paginated results.
+Previous and Next controls.
+Results updated according to the selected search/filter criteria.
+Search, role filtering, and pagination should work together without requiring separate pages.
+
+Validation and Documentation
+Validate and sanitize the search input.
+Validate the role value.
+Return 400 for invalid query parameters.
+Return 200 with an empty result for valid searches with no matches.
+Document all query parameters and their possible values in Swagger.
+Preserve the existing authentication and authorization rules.
+Out of Scope
+This PR does not change:
+
+User creation.
+User editing or deletion.
+Authentication.
+User roles themselves.
+The existing pagination response structure.
+Resolve #46

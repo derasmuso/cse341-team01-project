@@ -9,6 +9,7 @@ import { getRoleByName } from './roles.js';
  *******************************************/
 export async function createUser({ displayName, username, email, password }) {
   const customerRole = await getRoleByName('customer');
+
   if (!customerRole) {
     throw new Error('Default role not found');
   }
@@ -44,17 +45,118 @@ export async function verifyPassword(password, passwordHash) {
  * Manage users
  *******************************************/
 
-// Get all users
+// Get all users (existing, non-paginated function)
 export async function getAllUsers() {
   return User.find().select('-passwordHash').lean();
 }
 
-// Get a user by ID
+
+/*******************************************
+ * Get paginated users with search and role filtering
+ *******************************************/
+
+// Only allow fields that are safe and supported for sorting.
+const ALLOWED_SORT_FIELDS = ['username', 'displayName', 'email'];
+
+// Escape special regular-expression characters so search input
+// is interpreted as literal text.
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export async function getPaginatedUsers({
+  page = 1,
+  limit = 10,
+  sort = 'username',
+  order = 'asc',
+  q = '',
+  role,
+  filter = {},
+} = {}) {
+  if (!Number.isInteger(page) || page < 1) {
+    throw new Error('Page must be a positive integer');
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw new Error('Limit must be an integer between 1 and 100');
+  }
+
+  if (!ALLOWED_SORT_FIELDS.includes(sort)) {
+    throw new Error(
+      `Invalid sort field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(', ')}`
+    );
+  }
+
+  if (!['asc', 'desc'].includes(order)) {
+    throw new Error('Order must be either asc or desc');
+  }
+
+  // Build the database filter from supported criteria.
+  const conditions = [];
+
+  if (Object.keys(filter).length > 0) {
+    conditions.push(filter);
+  }
+
+  if (q) {
+    const searchRegex = new RegExp(escapeRegex(q), 'i');
+
+    conditions.push({
+      $or: [
+        { displayName: searchRegex },
+        { username: searchRegex },
+        { email: searchRegex },
+      ],
+    });
+  }
+
+  if (role !== undefined && role !== null && role !== '') {
+    conditions.push({ role });
+  }
+
+  const queryFilter =
+    conditions.length > 0 ? { $and: conditions } : {};
+
+  const skip = (page - 1) * limit;
+  const sortDirection = order === 'asc' ? 1 : -1;
+
+  const [users, totalItems] = await Promise.all([
+    User.find(queryFilter)
+      .select('-passwordHash')
+      .sort({ [sort]: sortDirection, _id: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+
+    User.countDocuments(queryFilter),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return {
+    data: users,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1 && totalPages > 0,
+    },
+  };
+}
+
+
+/*******************************************
+ * Get a user by ID
+ *******************************************/
 export async function getUserById(id) {
   return User.findById(id).select('-passwordHash').lean();
 }
 
-// Update a user by ID
+/*******************************************
+ * Update a user by ID
+ *******************************************/
 export async function updateUser(id, data) {
   const updateData = { ...data };
 
@@ -77,7 +179,6 @@ export async function updateUser(id, data) {
 
   if (updateData.password !== undefined) {
     updateData.passwordHash = await bcrypt.hash(updateData.password, 12);
-
     delete updateData.password;
   }
 
@@ -93,7 +194,9 @@ export async function updateUser(id, data) {
     .lean();
 }
 
-// Delete a user by ID
+/*******************************************
+ * Delete a user by ID
+ *******************************************/
 export async function deleteUser(id) {
   return User.findByIdAndDelete(id).select('-passwordHash').lean();
 }
