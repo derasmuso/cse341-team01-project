@@ -164,6 +164,7 @@ section.dashboard-bookings {
     min-width: 650px;
     border-collapse: collapse;
     background-color: var(--clr-surface);
+    font-size: 1.5rem;
 }
 
 .users-table th,

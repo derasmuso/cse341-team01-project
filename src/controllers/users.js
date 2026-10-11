@@ -54,9 +54,14 @@ function parsePositiveInteger(
 /*******************************************
  * Get paginated users
  *******************************************/
+
 export async function getUsers(req, res, next) {
   const page = parsePositiveInteger(req.query.page, DEFAULT_PAGE);
-  const limit = parsePositiveInteger(req.query.limit, DEFAULT_LIMIT, MAX_LIMIT);
+  const limit = parsePositiveInteger(
+    req.query.limit,
+    DEFAULT_LIMIT,
+    MAX_LIMIT
+  );
 
   if (page === null) {
     return res.status(400).json({
@@ -85,18 +90,51 @@ export async function getUsers(req, res, next) {
     });
   }
 
+  // Validate and normalize the search query.
+  const q = req.query.q ?? '';
+
+  if (typeof q !== 'string') {
+    return res.status(400).json({
+      message: 'Invalid search query. The search query must be a string.',
+    });
+  }
+
+  const search = q.trim();
+
+  if (search.length > 100) {
+    return res.status(400).json({
+      message: 'Search query must not exceed 100 characters.',
+    });
+  }
+
+  // Validate the optional role filter.
+  const role = req.query.role;
+
+  if (
+    role !== undefined &&
+    (typeof role !== 'string' || !['1', '2'].includes(role))
+  ) {
+    return res.status(400).json({
+      message: 'Invalid role. Allowed values are 1 and 2.',
+    });
+  }
+
   try {
     /*
      * Admins can view all users.
      * Regular users can only view their own account.
      */
-    const filter = req.user.role === ADMIN_ROLE ? {} : { _id: req.user.id };
+    const filter = req.user.role === ADMIN_ROLE
+      ? {}
+      : { _id: req.user.id };
 
     const result = await getPaginatedUsers({
       page,
       limit,
       sort,
       order,
+      q: search,
+      role: role || undefined,
       filter,
     });
 
@@ -104,7 +142,10 @@ export async function getUsers(req, res, next) {
      * Preserve the existing behavior when the authenticated
      * user's account cannot be found.
      */
-    if (req.user.role !== ADMIN_ROLE && result.pagination.totalItems === 0) {
+    if (
+      req.user.role !== ADMIN_ROLE &&
+      result.pagination.totalItems === 0
+    ) {
       return res.status(404).json({
         message: 'User not found',
       });
@@ -115,6 +156,7 @@ export async function getUsers(req, res, next) {
     return next(error);
   }
 }
+
 
 /*******************************************
  * Update user by ID

@@ -3,6 +3,28 @@
 
     <p id="users-message" role="status" aria-live="polite"></p>
 
+    <!-- User filters -->
+    <div class="users-filters">
+        <div>
+            <label for="users-search">Search users</label>
+            <input type="search" id="users-search" placeholder="Search name, username, or email" maxlength="100">
+        </div>
+    
+        <div>
+            <label for="users-role-filter">Filter by role</label>
+            <select id="users-role-filter">
+                <option value="">All roles</option>
+                <option value="1">Customer</option>
+                <option value="2">Admin</option>
+            </select>
+        </div>
+    
+        <button type="button" id="users-clear-filters">
+            Clear filters
+        </button>
+    </div>
+
+    <!-- User list container -->
     <div id="users-container">
         <p>Loading users...</p>
     </div>

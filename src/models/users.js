@@ -50,18 +50,27 @@ export async function getAllUsers() {
   return User.find().select('-passwordHash').lean();
 }
 
+
 /*******************************************
- * Get paginated users
+ * Get paginated users with search and role filtering
  *******************************************/
 
 // Only allow fields that are safe and supported for sorting.
 const ALLOWED_SORT_FIELDS = ['username', 'displayName', 'email'];
+
+// Escape special regular-expression characters so search input
+// is interpreted as literal text.
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 export async function getPaginatedUsers({
   page = 1,
   limit = 10,
   sort = 'username',
   order = 'asc',
+  q = '',
+  role,
   filter = {},
 } = {}) {
   if (!Number.isInteger(page) || page < 1) {
@@ -82,18 +91,44 @@ export async function getPaginatedUsers({
     throw new Error('Order must be either asc or desc');
   }
 
+  // Build the database filter from supported criteria.
+  const conditions = [];
+
+  if (Object.keys(filter).length > 0) {
+    conditions.push(filter);
+  }
+
+  if (q) {
+    const searchRegex = new RegExp(escapeRegex(q), 'i');
+
+    conditions.push({
+      $or: [
+        { displayName: searchRegex },
+        { username: searchRegex },
+        { email: searchRegex },
+      ],
+    });
+  }
+
+  if (role !== undefined && role !== null && role !== '') {
+    conditions.push({ role });
+  }
+
+  const queryFilter =
+    conditions.length > 0 ? { $and: conditions } : {};
+
   const skip = (page - 1) * limit;
   const sortDirection = order === 'asc' ? 1 : -1;
 
   const [users, totalItems] = await Promise.all([
-    User.find(filter)
+    User.find(queryFilter)
       .select('-passwordHash')
       .sort({ [sort]: sortDirection, _id: 1 })
       .skip(skip)
       .limit(limit)
       .lean(),
 
-    User.countDocuments(filter),
+    User.countDocuments(queryFilter),
   ]);
 
   const totalPages = Math.ceil(totalItems / limit);
@@ -106,10 +141,11 @@ export async function getPaginatedUsers({
       totalItems,
       totalPages,
       hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
+      hasPreviousPage: page > 1 && totalPages > 0,
     },
   };
 }
+
 
 /*******************************************
  * Get a user by ID

@@ -1,5 +1,9 @@
 // public/js/admin-users.js
 
+/******************************************
+ *   DOM selectors
+ * ****************************************
+ */
 const usersContainer = document.querySelector('#users-container');
 const usersMessage = document.querySelector('#users-message');
 const pagination = document.querySelector('#users-pagination');
@@ -12,7 +16,14 @@ const editForm = document.querySelector('#user-edit-form');
 const editMessage = document.querySelector('#edit-user-message');
 const cancelEditButton = document.querySelector('#cancel-edit-button');
 const saveUserButton = document.querySelector('#save-user-button');
+const searchInput = document.querySelector('#users-search');
+const roleFilter = document.querySelector('#users-role-filter');
+const clearFiltersButton = document.querySelector('#users-clear-filters');
 
+
+/******************************************
+ *   Constants and state
+ * ****************************************/
 const API_URL = '/api/users';
 const PAGE_SIZE = 10;
 const DEFAULT_SORT = 'username';
@@ -24,6 +35,9 @@ let currentOrder = DEFAULT_ORDER;
 let totalPages = 1;
 let users = [];
 let editingUserId = null;
+
+let currentSearch = '';
+let currentRole = '';
 
 function showMessage(message, isError = false) {
     if (!usersMessage) return;
@@ -250,6 +264,14 @@ async function loadUsers() {
             order: currentOrder
         });
 
+        if (currentSearch) {
+            params.set('q', currentSearch);
+        }
+
+        if (currentRole) {
+            params.set('role', currentRole);
+        }
+
         const response = await fetch(`${API_URL}?${params}`, {
             method: 'GET',
             headers: {
@@ -470,6 +492,7 @@ async function deleteUser(userId) {
     }
 }
 
+
 if (
     usersContainer &&
     usersMessage &&
@@ -480,7 +503,10 @@ if (
     editModal &&
     editForm &&
     cancelEditButton &&
-    saveUserButton
+    saveUserButton &&
+    searchInput &&
+    roleFilter &&
+    clearFiltersButton
 ) {
     previousPageButton.addEventListener('click', () => {
         if (currentPage > 1) {
@@ -509,5 +535,40 @@ if (
         showEditMessage('');
     });
 
+    // Search users, with a short debounce.
+    let searchDebounce;
+
+    searchInput.addEventListener('input', () => {
+        window.clearTimeout(searchDebounce);
+
+        searchDebounce = window.setTimeout(() => {
+            currentSearch = searchInput.value.trim();
+            currentPage = 1;
+            loadUsers();
+        }, 300);
+    });
+
+    // Filter users by role.
+    roleFilter.addEventListener('change', () => {
+        currentRole = roleFilter.value;
+        currentPage = 1;
+        loadUsers();
+    });
+
+    // Clear both filters.
+    clearFiltersButton.addEventListener('click', () => {
+        searchInput.value = '';
+        roleFilter.value = '';
+
+        currentSearch = '';
+        currentRole = '';
+        currentPage = 1;
+
+        loadUsers();
+    });
+
+    // Load the initial user list.
     loadUsers();
 }
+
+
