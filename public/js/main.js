@@ -76,6 +76,11 @@ const hookBookingsAdmin = async () => {
     // The filters currently applied. They are kept while stepping through pages.
     let filters = {};
 
+    // The page being shown, kept up to date by loadPage so a delete
+    // can reload the same page instead of jumping back to page 1.
+    let currentPage = 1;
+
+    // Renders one row per booking and wires its Delete button (if the template has one).
     const renderRows = (bookings) => {
         const fragment = document.createDocumentFragment();
 
@@ -89,6 +94,29 @@ const hookBookingsAdmin = async () => {
             row.querySelector('[data-field="selectedDay"]').textContent = booking.selectedDay;
             row.querySelector('[data-field="passengers"]').textContent = passengerCount;
             row.querySelector('[data-field="createdAt"]').textContent = bookedOn;
+
+            const deleteButton = row.querySelector('[data-field="delete"]');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', async () => {
+                    deleteButton.disabled = true;
+
+                    try {
+                        const response = await fetch(`/api/bookings/${encodeURIComponent(booking.id)}`, {
+                            method: 'DELETE',
+                        });
+                        if (!response.ok) {
+                            throw new Error(`Failed to delete booking (${response.status})`);
+                        }
+                        // Reload the current page of results so counts stay correct.
+                        await loadPage(currentPage);
+                    } catch (error) {
+                        deleteButton.disabled = false;
+                        errorEl.hidden = false;
+                        errorEl.textContent = error.message
+                            || 'Unable to delete the booking right now. Please try again in a moment.';
+                    }
+                });
+            }
 
             fragment.appendChild(row);
         });
@@ -118,6 +146,8 @@ const hookBookingsAdmin = async () => {
         errorEl.hidden = true;
 
         try {
+            currentPage = page;
+
             const params = new URLSearchParams({ page, limit: BOOKINGS_PAGE_SIZE, ...filters });
             const response = await fetch(`/api/bookings?${params}`);
             if (!response.ok) {

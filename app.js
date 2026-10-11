@@ -47,6 +47,14 @@ app.use(
 );
 app.use(loadSessionUser);
 
+// API data must always be fresh. Without this, browsers cache API
+// responses and revalidation returns 304 with an empty body, which
+// the client-side code treats as a failed request.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 app.use(globalMiddleware);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/', routes);

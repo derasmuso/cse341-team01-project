@@ -1020,7 +1020,7 @@ router.put('/bookings/:id', requireApiLogin, updateBookingById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/bookings/:id', requireApiLogin, deleteBookingById);
+router.delete('/bookings/:id', requireApiRole('2'), deleteBookingById);
 
 /**
  * @openapi

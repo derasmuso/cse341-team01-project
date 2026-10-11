@@ -42,10 +42,6 @@ router.get('/trains', trainsPage);
 // Trains API
 router.get('/api/trains', trainsApi);
 
-// Bookings admin page
-// router.get('/bookings', bookingsAdminPage);
-// router.get('/bookings-admin', bookingsAdminPage);
-
 // EJS routes
 router.use('/trips', ejsRoutes);
 
