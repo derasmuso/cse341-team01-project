@@ -1,0 +1,33 @@
+<main class="admin-trips-page">
+    <h2>Manage Trips</h2>
+    <hr><br>
+
+    <p id="trips-message" role="status" aria-live="polite"></p>
+
+    <div class="trips-state" id="trips-loading">Loading trips...</div>
+    <div class="trips-state trips-error" id="trips-error" hidden></div>
+    <div class="trips-state" id="trips-empty" hidden>No trips found.</div>
+
+    <div id="trips-list" class="admin-trips-list"></div>
+
+    <nav id="trips-pagination" class="admin-trips-pagination" aria-label="Trip list pagination" hidden>
+        <button type="button" id="trips-previous-page" disabled>Previous</button>
+        <span id="trips-page-info">Page 1 of 1</span>
+        <button type="button" id="trips-next-page" disabled>Next</button>
+    </nav>
+</main>
+
+<template id="admin-trip-row-template">
+    <article class="admin-trip-row">
+        <header>
+            <h3 data-field="name"></h3>
+            <span data-field="region" class="trip-region-badge"></span>
+        </header>
+        <p><strong>Route:</strong> <span data-field="start"></span> → <span data-field="end"></span></p>
+        <p><strong>Duration:</strong> <span data-field="duration"></span> · <strong>Distance:</strong> <span data-field="distance"></span>km</p>
+        <p><strong>Best Season:</strong> <span data-field="season"></span></p>
+        <p data-field="description"></p>
+    </article>
+</template>
+
+<script type="module" src="/js/admin-trips.js"></script>
