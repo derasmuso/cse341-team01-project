@@ -50,7 +50,6 @@ export async function getAllUsers() {
   return User.find().select('-passwordHash').lean();
 }
 
-
 /*******************************************
  * Get paginated users with search and role filtering
  *******************************************/
@@ -114,8 +113,7 @@ export async function getPaginatedUsers({
     conditions.push({ role });
   }
 
-  const queryFilter =
-    conditions.length > 0 ? { $and: conditions } : {};
+  const queryFilter = conditions.length > 0 ? { $and: conditions } : {};
 
   const skip = (page - 1) * limit;
   const sortDirection = order === 'asc' ? 1 : -1;
@@ -145,7 +143,6 @@ export async function getPaginatedUsers({
     },
   };
 }
-
 
 /*******************************************
  * Get a user by ID

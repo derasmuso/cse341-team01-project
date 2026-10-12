@@ -2,6 +2,8 @@
 
 import { Router } from 'express';
 
+import { trainsApi } from './trains.js';
+
 import {
   getAllTicketClasses,
   getTicketClassesForDay,
@@ -24,7 +26,10 @@ import {
 
 import { requireApiLogin } from '../middleware/auth.js';
 
+
 const router = Router();
+
+
 
 /**
  * @openapi
@@ -39,16 +44,13 @@ const router = Router();
  *           example: 68c123456789abcdef123456
  *         displayName:
  *           type: string
- *           description: User's display name.
  *           example: Yuki Tanaka
  *         username:
  *           type: string
- *           description: User's unique username.
  *           example: yuki.tanaka
  *         email:
  *           type: string
  *           format: email
- *           description: User's email address.
  *           example: yuki.tanaka@example.com
  *         role:
  *           type: string
@@ -65,21 +67,50 @@ const router = Router();
  *         - role
  */
 
+
 /**
  * @openapi
  * /api/users:
  *   get:
  *     summary: Get a paginated list of users
  *     description: |
- *       Returns a page of users that the authenticated user is
- *       authorized to access. Administrators can view all users,
- *       while regular users can view only their own information.
- *       Password hashes are never included.
+ *       Returns a paginated list of users that the authenticated
+ *       user is authorized to access.
+ *
+ *       Administrators can view all users and filter by role.
+ *       Regular users can view only their own information.
+ *
+ *       The q parameter performs a case-insensitive partial search
+ *       across displayName, username, and email.
+ *
+ *       Search and role filters can be combined with pagination
+ *       and sorting. Password hashes are never included.
  *     tags:
  *       - Users
  *     security:
  *       - sessionAuth: []
  *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: false
+ *         description: |
+ *           Case-insensitive partial search across displayName,
+ *           username, and email. Leading and trailing whitespace
+ *           is trimmed. Maximum length is 100 characters.
+ *         schema:
+ *           type: string
+ *           maxLength: 100
+ *         example: yuki
+ *       - in: query
+ *         name: role
+ *         required: false
+ *         description: Filter users by role ID.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - "1"
+ *             - "2"
+ *         example: "1"
  *       - in: query
  *         name: page
  *         required: false
@@ -124,7 +155,10 @@ const router = Router();
  *         example: asc
  *     responses:
  *       200:
- *         description: Users retrieved successfully with pagination metadata.
+ *         description: |
+ *           Users retrieved successfully. If no users match the
+ *           supplied filters, data is an empty array and pagination
+ *           metadata reports zero total items and zero total pages.
  *         content:
  *           application/json:
  *             schema:
@@ -155,25 +189,45 @@ const router = Router();
  *                       example: 10
  *                     totalItems:
  *                       type: integer
- *                       description: Total number of authorized users.
- *                       example: 25
+ *                       description: Total authorized users matching the filters.
+ *                       example: 12
  *                     totalPages:
  *                       type: integer
- *                       example: 3
+ *                       example: 2
  *                     hasNextPage:
  *                       type: boolean
  *                       example: true
  *                     hasPreviousPage:
  *                       type: boolean
  *                       example: false
+ *             example:
+ *               data: []
+ *               pagination:
+ *                 page: 1
+ *                 limit: 10
+ *                 totalItems: 0
+ *                 totalPages: 0
+ *                 hasNextPage: false
+ *                 hasPreviousPage: false
  *       400:
- *         description: Invalid pagination or sorting parameters.
+ *         description: Invalid search, role, pagination, or sorting parameters.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Invalid page. Page must be a positive integer."
+ *             examples:
+ *               invalidPage:
+ *                 summary: Invalid page
+ *                 value:
+ *                   message: "Invalid page. Page must be a positive integer."
+ *               invalidRole:
+ *                 summary: Invalid role
+ *                 value:
+ *                   message: "Invalid role. Allowed values are 1 and 2."
+ *               searchTooLong:
+ *                 summary: Search query exceeds the maximum length
+ *                 value:
+ *                   message: "Search query must not exceed 100 characters."
  *       401:
  *         description: Authentication required.
  *         content:
@@ -340,6 +394,9 @@ router.put('/users/:id', requireApiLogin, updateUserById);
  *               $ref: '#/components/schemas/Error'
  */
 router.delete('/users/:id', requireApiLogin, deleteUserById);
+
+// Trains API
+router.get('/trains', trainsApi);
 
 /**
  * @openapi

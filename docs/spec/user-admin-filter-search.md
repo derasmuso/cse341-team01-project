@@ -4,10 +4,10 @@
 
 Enhance the existing `GET /api/users` endpoint and `/users` page by adding:
 
-* Keyword search across user display names, usernames, and email addresses.
-* Filtering by user role.
-* Support for combining search and role filtering.
-* Pagination of the resulting filtered/search results.
+- Keyword search across user display names, usernames, and email addresses.
+- Filtering by user role.
+- Support for combining search and role filtering.
+- Pagination of the resulting filtered/search results.
 
 The pagination functionality from PR 1 must remain available and continue to work with the new search and filtering functionality.
 
@@ -42,9 +42,9 @@ Example:
 
 The `q` parameter must search across the following user fields:
 
-* `displayName`
-* `username`
-* `email`
+- `displayName`
+- `username`
+- `email`
 
 The search should be **case-insensitive**.
 
@@ -56,9 +56,9 @@ should return users where `john` matches any of the supported fields.
 
 The search should support partial matches. For example, searching for `jo` may match:
 
-* `John Doe`
-* `johnsmith`
-* `john@example.com`
+- `John Doe`
+- `johnsmith`
+- `john@example.com`
 
 The search input should be trimmed and validated before being used in the database query.
 
@@ -105,10 +105,10 @@ The existing pagination behavior from PR 1 must remain unchanged.
 
 The default behavior should continue to be:
 
-* Page: `1`
-* Limit: `10`
-* Sort: `username`
-* Order: `asc`
+- Page: `1`
+- Limit: `10`
+- Sort: `username`
+- Order: `asc`
 
 For example:
 
@@ -140,9 +140,9 @@ The response must continue to include:
 
 A valid search or role filter that produces no matches must return:
 
-* HTTP `200`
-* An empty `data` array
-* Correct pagination metadata
+- HTTP `200`
+- An empty `data` array
+- Correct pagination metadata
 
 It must **not** return `404`.
 
@@ -172,12 +172,12 @@ Invalid values should return **HTTP `400`** with a clear error message.
 
 Validation should include:
 
-* Invalid `page`.
-* Invalid `limit`.
-* Invalid `sort`.
-* Invalid `order`.
-* Invalid `role`.
-* Invalid or excessively long search input.
+- Invalid `page`.
+- Invalid `limit`.
+- Invalid `sort`.
+- Invalid `order`.
+- Invalid `role`.
+- Invalid or excessively long search input.
 
 The implementation should not pass the entire `req.query` object directly to Mongoose.
 
@@ -195,9 +195,9 @@ The page should include:
 
 A keyword input that allows the administrator to search by:
 
-* Display name
-* Username
-* Email
+- Display name
+- Username
+- Email
 
 ### Role Filter
 
@@ -215,9 +215,9 @@ The existing pagination controls from PR 1 must continue to work.
 
 When the administrator changes the search term or role filter:
 
-* The results should be refreshed.
-* Pagination should start from page 1.
-* The selected search/filter criteria should be included in the API request.
+- The results should be refreshed.
+- Pagination should start from page 1.
+- The selected search/filter criteria should be included in the API request.
 
 When moving to another page, the current search and role filter must be preserved.
 
@@ -273,21 +273,21 @@ Update the Swagger/OpenAPI documentation for `GET /api/users`.
 
 Document:
 
-* `q`
-* `role`
-* `page`
-* `limit`
-* `sort`
-* `order`
+- `q`
+- `role`
+- `page`
+- `limit`
+- `sort`
+- `order`
 
 For each parameter, document:
 
-* Parameter type.
-* Whether it is required.
-* Default value where applicable.
-* Allowed values where applicable.
-* Validation constraints.
-* Purpose of the parameter.
+- Parameter type.
+- Whether it is required.
+- Default value where applicable.
+- Allowed values where applicable.
+- Validation constraints.
+- Purpose of the parameter.
 
 The response documentation should also describe the `data` and `pagination` properties.
 
@@ -299,50 +299,50 @@ Tests should verify at minimum:
 
 ### Search
 
-* Search by display name.
-* Search by username.
-* Search by email.
-* Case-insensitive search.
-* Partial keyword matches.
-* Search with no matches.
+- Search by display name.
+- Search by username.
+- Search by email.
+- Case-insensitive search.
+- Partial keyword matches.
+- Search with no matches.
 
 ### Role Filter
 
-* Filtering by each valid role.
-* Invalid role value.
-* Role filter with no matching users.
+- Filtering by each valid role.
+- Invalid role value.
+- Role filter with no matching users.
 
 ### Combined Search and Filter
 
-* Search + role filter.
-* Search + role filter + pagination.
-* Correct `totalItems` and `totalPages` after filtering.
+- Search + role filter.
+- Search + role filter + pagination.
+- Correct `totalItems` and `totalPages` after filtering.
 
 ### Pagination
 
-* First page.
-* Subsequent pages.
-* Previous/next page behavior.
-* Pagination after applying a search.
-* Pagination after applying a role filter.
-* Pagination after applying both.
+- First page.
+- Subsequent pages.
+- Previous/next page behavior.
+- Pagination after applying a search.
+- Pagination after applying a role filter.
+- Pagination after applying both.
 
 ### Validation
 
-* Invalid page.
-* Invalid limit.
-* Invalid sort.
-* Invalid order.
-* Invalid role.
-* Invalid/oversized search input.
+- Invalid page.
+- Invalid limit.
+- Invalid sort.
+- Invalid order.
+- Invalid role.
+- Invalid/oversized search input.
 
 ### UI
 
-* Search control works.
-* Role filter works.
-* Search and filter can be combined.
-* Pagination preserves the current search/filter criteria.
-* Changing search/filter resets the results to page 1.
+- Search control works.
+- Role filter works.
+- Search and filter can be combined.
+- Pagination preserves the current search/filter criteria.
+- Changing search/filter resets the results to page 1.
 
 ---
 
@@ -362,12 +362,12 @@ No changes should be made to user creation, authentication, password handling, o
 
 This issue does not include:
 
-* Creating new user roles.
-* Changing the existing role system.
-* Changing authentication or authorization.
-* Changing user creation, update, or deletion behavior.
-* Changing the pagination response structure introduced in PR 1.
-* Adding unrelated user-management features.
+- Creating new user roles.
+- Changing the existing role system.
+- Changing authentication or authorization.
+- Changing user creation, update, or deletion behavior.
+- Changing the pagination response structure introduced in PR 1.
+- Adding unrelated user-management features.
 
 ---
 
@@ -375,18 +375,18 @@ This issue does not include:
 
 This issue is complete when:
 
-* `GET /api/users` supports keyword search.
-* Search covers display name, username, and email.
-* Search is case-insensitive and supports partial matches.
-* Role filtering works with the existing role values.
-* Search and role filtering can be combined.
-* Pagination works correctly with all search/filter combinations.
-* Pagination metadata reflects the filtered result set.
-* Valid no-match requests return `200` with an empty result.
-* Invalid query parameters return `400`.
-* The `/users` page provides search and role-filter controls.
-* Pagination preserves active search/filter criteria.
-* Swagger documentation is updated.
-* Appropriate tests pass.
-* ESLint reports no errors.
-* Existing authentication, authorization, and password-protection behavior remains intact.
+- `GET /api/users` supports keyword search.
+- Search covers display name, username, and email.
+- Search is case-insensitive and supports partial matches.
+- Role filtering works with the existing role values.
+- Search and role filtering can be combined.
+- Pagination works correctly with all search/filter combinations.
+- Pagination metadata reflects the filtered result set.
+- Valid no-match requests return `200` with an empty result.
+- Invalid query parameters return `400`.
+- The `/users` page provides search and role-filter controls.
+- Pagination preserves active search/filter criteria.
+- Swagger documentation is updated.
+- Appropriate tests pass.
+- ESLint reports no errors.
+- Existing authentication, authorization, and password-protection behavior remains intact.
