@@ -295,6 +295,7 @@ export async function updateUserById(req, res, next) {
 /*******************************************
  * Delete user by ID
  *******************************************/
+
 export async function deleteUserById(req, res, next) {
   const { id } = req.params;
 
@@ -323,6 +324,29 @@ export async function deleteUserById(req, res, next) {
       });
     }
 
+    // Only terminate the session if the user deleted their own account.
+    const isDeletingOwnAccount = req.user.id === id;
+
+    if (isDeletingOwnAccount) {
+      return req.session.destroy((error) => {
+        if (error) {
+          console.error('Failed to destroy session:', error);
+
+          return res.status(500).json({
+            message: 'Account deleted, but failed to terminate the session.',
+          });
+        }
+
+        // Use the cookie name configured by your Express session middleware.
+        res.clearCookie('connect.sid');
+
+        return res.status(200).json({
+          message: 'Account deleted successfully. Session terminated.',
+        });
+      });
+    }
+
+    // An administrator deleting another user remains logged in.
     return res.status(200).json(user);
   } catch (error) {
     return next(error);

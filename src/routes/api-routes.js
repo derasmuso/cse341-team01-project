@@ -26,10 +26,7 @@ import {
 
 import { requireApiLogin } from '../middleware/auth.js';
 
-
 const router = Router();
-
-
 
 /**
  * @openapi
@@ -66,7 +63,6 @@ const router = Router();
  *         - email
  *         - role
  */
-
 
 /**
  * @openapi

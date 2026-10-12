@@ -31,8 +31,12 @@
                     Manage Bookings
             </a>
 
-            <a href="/logout" class="dashboard-nav-link">
-                Logout
-            </a>
+            
+            <form action="/logout" method="POST" class="dashboard-logout-form">
+                <button type="submit" class="dashboard-nav-link dashboard-logout-button">
+                    Logout
+                </button>
+            </form>
+
         </nav>
     </aside>

@@ -1,5 +1,7 @@
 // public/js/admin-users.js
 
+import { deleteUserById } from './user-actions.js';
+
 /******************************************
  *   DOM selectors
  * ****************************************
@@ -205,7 +207,7 @@ function createTable() {
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.textContent = 'Delete';
-        deleteButton.classList.add('delete-user-button');
+        deleteButton.classList.add('btn', 'btn-delete');
         deleteButton.addEventListener('click', () => {
             deleteUser(userId);
         });
@@ -222,6 +224,10 @@ function createTable() {
     return table;
 }
 
+/************************************
+ * MANAGE USERS
+ * **********************************
+ */
 function renderUsers() {
     usersContainer.replaceChildren();
 
@@ -446,34 +452,23 @@ async function saveUser(event) {
     }
 }
 
+// Delete user
+
 async function deleteUser(userId) {
     if (!userId) {
         showMessage('Unable to delete a user without an ID.', true);
         return;
     }
 
-    const confirmed = window.confirm(
-        'Are you sure you want to delete this user? This action cannot be undone.'
-    );
-
-    if (!confirmed) return;
-
     try {
         showMessage('Deleting user...');
 
-        const response = await fetch(
-            `${API_URL}/${encodeURIComponent(userId)}`,
-            {
-                method: 'DELETE',
-                headers: {
-                    Accept: 'application/json'
-                },
-                credentials: 'same-origin'
-            }
-        );
+        const deleted = await deleteUserById(userId);
 
-        // Handles non-JSON responses and HTTP errors consistently.
-        await readResponse(response);
+        // The user cancelled the confirmation dialog.
+        if (!deleted) {
+            return;
+        }
 
         // If the last user on this page was deleted, move back one page.
         if (users.length === 1 && currentPage > 1) {
@@ -491,6 +486,7 @@ async function deleteUser(userId) {
         );
     }
 }
+
 
 
 if (
