@@ -31,18 +31,15 @@
           },
           "displayName": {
             "type": "string",
-            "description": "User's display name.",
             "example": "Yuki Tanaka"
           },
           "username": {
             "type": "string",
-            "description": "User's unique username.",
             "example": "yuki.tanaka"
           },
           "email": {
             "type": "string",
             "format": "email",
-            "description": "User's email address.",
             "example": "yuki.tanaka@example.com"
           },
           "role": {
@@ -272,7 +269,7 @@
     "/api/users": {
       "get": {
         "summary": "Get a paginated list of users",
-        "description": "Returns a page of users that the authenticated user is\nauthorized to access. Administrators can view all users,\nwhile regular users can view only their own information.\nPassword hashes are never included.\n",
+        "description": "Returns a paginated list of users that the authenticated\nuser is authorized to access.\n\nAdministrators can view all users and filter by role.\nRegular users can view only their own information.\n\nThe q parameter performs a case-insensitive partial search\nacross displayName, username, and email.\n\nSearch and role filters can be combined with pagination\nand sorting. Password hashes are never included.\n",
         "tags": [
           "Users"
         ],
@@ -282,6 +279,31 @@
           }
         ],
         "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "description": "Case-insensitive partial search across displayName,\nusername, and email. Leading and trailing whitespace\nis trimmed. Maximum length is 100 characters.\n",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "example": "yuki"
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "description": "Filter users by role ID.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1",
+                "2"
+              ]
+            },
+            "example": "1"
+          },
           {
             "in": "query",
             "name": "page",
@@ -341,7 +363,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Users retrieved successfully with pagination metadata.",
+            "description": "Users retrieved successfully. If no users match the\nsupplied filters, data is an empty array and pagination\nmetadata reports zero total items and zero total pages.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -378,12 +400,12 @@
                         },
                         "totalItems": {
                           "type": "integer",
-                          "description": "Total number of authorized users.",
-                          "example": 25
+                          "description": "Total authorized users matching the filters.",
+                          "example": 12
                         },
                         "totalPages": {
                           "type": "integer",
-                          "example": 3
+                          "example": 2
                         },
                         "hasNextPage": {
                           "type": "boolean",
@@ -396,19 +418,47 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "data": [],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 10,
+                    "totalItems": 0,
+                    "totalPages": 0,
+                    "hasNextPage": false,
+                    "hasPreviousPage": false
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid pagination or sorting parameters.",
+            "description": "Invalid search, role, pagination, or sorting parameters.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
-                "example": {
-                  "message": "Invalid page. Page must be a positive integer."
+                "examples": {
+                  "invalidPage": {
+                    "summary": "Invalid page",
+                    "value": {
+                      "message": "Invalid page. Page must be a positive integer."
+                    }
+                  },
+                  "invalidRole": {
+                    "summary": "Invalid role",
+                    "value": {
+                      "message": "Invalid role. Allowed values are 1 and 2."
+                    }
+                  },
+                  "searchTooLong": {
+                    "summary": "Search query exceeds the maximum length",
+                    "value": {
+                      "message": "Search query must not exceed 100 characters."
+                    }
+                  }
                 }
               }
             }

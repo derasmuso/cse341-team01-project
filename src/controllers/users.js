@@ -57,11 +57,7 @@ function parsePositiveInteger(
 
 export async function getUsers(req, res, next) {
   const page = parsePositiveInteger(req.query.page, DEFAULT_PAGE);
-  const limit = parsePositiveInteger(
-    req.query.limit,
-    DEFAULT_LIMIT,
-    MAX_LIMIT
-  );
+  const limit = parsePositiveInteger(req.query.limit, DEFAULT_LIMIT, MAX_LIMIT);
 
   if (page === null) {
     return res.status(400).json({
@@ -124,9 +120,7 @@ export async function getUsers(req, res, next) {
      * Admins can view all users.
      * Regular users can only view their own account.
      */
-    const filter = req.user.role === ADMIN_ROLE
-      ? {}
-      : { _id: req.user.id };
+    const filter = req.user.role === ADMIN_ROLE ? {} : { _id: req.user.id };
 
     const result = await getPaginatedUsers({
       page,
@@ -142,10 +136,7 @@ export async function getUsers(req, res, next) {
      * Preserve the existing behavior when the authenticated
      * user's account cannot be found.
      */
-    if (
-      req.user.role !== ADMIN_ROLE &&
-      result.pagination.totalItems === 0
-    ) {
+    if (req.user.role !== ADMIN_ROLE && result.pagination.totalItems === 0) {
       return res.status(404).json({
         message: 'User not found',
       });
@@ -156,7 +147,6 @@ export async function getUsers(req, res, next) {
     return next(error);
   }
 }
-
 
 /*******************************************
  * Update user by ID
@@ -305,6 +295,7 @@ export async function updateUserById(req, res, next) {
 /*******************************************
  * Delete user by ID
  *******************************************/
+
 export async function deleteUserById(req, res, next) {
   const { id } = req.params;
 
@@ -333,6 +324,29 @@ export async function deleteUserById(req, res, next) {
       });
     }
 
+    // Only terminate the session if the user deleted their own account.
+    const isDeletingOwnAccount = req.user.id === id;
+
+    if (isDeletingOwnAccount) {
+      return req.session.destroy((error) => {
+        if (error) {
+          console.error('Failed to destroy session:', error);
+
+          return res.status(500).json({
+            message: 'Account deleted, but failed to terminate the session.',
+          });
+        }
+
+        // Use the cookie name configured by your Express session middleware.
+        res.clearCookie('connect.sid');
+
+        return res.status(200).json({
+          message: 'Account deleted successfully. Session terminated.',
+        });
+      });
+    }
+
+    // An administrator deleting another user remains logged in.
     return res.status(200).json(user);
   } catch (error) {
     return next(error);

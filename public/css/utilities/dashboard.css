@@ -697,3 +697,42 @@ section.dashboard-bookings {
         font-size: var(--font-size-xl);
     }
 }
+
+
+/* Shared delete button styling */
+.btn-delete {
+    background-color: #dc2626;
+    color: #ffffff;
+    border: 1px solid #dc2626;
+}
+
+.btn-delete:hover:not(:disabled) {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.btn-delete:focus-visible {
+    outline: 3px solid #fca5a5;
+    outline-offset: 3px;
+}
+
+.btn-delete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Profile account deletion section */
+.profile-danger-zone {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.profile-danger-zone h3 {
+    color: #b91c1c;
+}
+
+.profile-danger-zone p {
+    margin-bottom: 1rem;
+    color: #6b7280;
+}

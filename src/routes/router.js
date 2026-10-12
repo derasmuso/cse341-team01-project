@@ -40,7 +40,7 @@ router.get('/about', aboutPage);
 router.get('/trains', trainsPage);
 
 // Trains API
-router.get('/api/trains', trainsApi);
+// router.get('/api/trains', trainsApi);
 
 // Bookings admin page
 // router.get('/bookings', bookingsAdminPage);
