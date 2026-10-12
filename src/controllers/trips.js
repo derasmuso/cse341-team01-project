@@ -121,3 +121,14 @@ export function listTripsPage(req, res) {
     seasons: TRIP_SEASONS,
   });
 }
+
+export function tripsAdminPage(req, res) {
+  res.render('layouts/dashboard', {
+    title: 'Trips Admin',
+    contentPartial: '../admin/trips',
+    regions: TRIP_REGIONS,
+    seasons: TRIP_SEASONS,
+    user: req.session?.user || null,
+    currentPage: 'trips-admin',
+  });
+}

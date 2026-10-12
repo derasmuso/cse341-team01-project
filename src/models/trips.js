@@ -37,7 +37,7 @@ export async function getTripsPage({ page, limit, region, season, search }) {
   const filter = buildTripFilter({ region, season, search });
 
   const [trips, totalTrips] = await Promise.all([
-    Trip.find(filter).sort({ name: 1, id: 1 }).skip(skip).limit(limit).lean(),
+    Trip.find(filter).sort({ name: 1 }).skip(skip).limit(limit).lean(),
     Trip.countDocuments(filter),
   ]);
 
