@@ -5,6 +5,9 @@ const PAGE_SIZE = 10;
 const state = {
     page: 1,
     totalPages: 1,
+    region: '',
+    season: '',
+    search: '',
 };
 
 const els = {
@@ -20,10 +23,20 @@ const els = {
     message: document.getElementById('trips-message'),
 };
 
+const filterEls = {
+    region: document.getElementById('trips-region-filter'),
+    season: document.getElementById('trips-season-filter'),
+    search: document.getElementById('trips-search'),
+    clear: document.getElementById('trips-clear-filters'),
+};
+
 function buildUrl() {
     const params = new URLSearchParams();
     params.set('page', String(state.page));
     params.set('limit', String(PAGE_SIZE));
+    if (state.region) params.set('region', state.region);
+    if (state.season) params.set('season', state.season);
+    if (state.search) params.set('search', state.search);
     return `/api/trips?${params.toString()}`;
 }
 
@@ -95,6 +108,47 @@ if (els.next) {
             state.page += 1;
             load();
         }
+    });
+}
+
+if (filterEls.region) {
+    filterEls.region.addEventListener('change', () => {
+        state.region = filterEls.region.value;
+        state.page = 1;
+        load();
+    });
+}
+
+if (filterEls.season) {
+    filterEls.season.addEventListener('change', () => {
+        state.season = filterEls.season.value;
+        state.page = 1;
+        load();
+    });
+}
+
+if (filterEls.search) {
+    let debounceId;
+    filterEls.search.addEventListener('input', () => {
+        clearTimeout(debounceId);
+        debounceId = setTimeout(() => {
+            state.search = filterEls.search.value.trim();
+            state.page = 1;
+            load();
+        }, 300);
+    });
+}
+
+if (filterEls.clear) {
+    filterEls.clear.addEventListener('click', () => {
+        state.region = '';
+        state.season = '';
+        state.search = '';
+        state.page = 1;
+        if (filterEls.region) filterEls.region.value = '';
+        if (filterEls.season) filterEls.season.value = '';
+        if (filterEls.search) filterEls.search.value = '';
+        load();
     });
 }
 

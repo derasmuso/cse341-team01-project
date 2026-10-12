@@ -4,9 +4,38 @@
 
     <p id="trips-message" role="status" aria-live="polite"></p>
 
+    <div class="trips-filters">
+        <div>
+            <label for="trips-region-filter">Filter by region</label>
+            <select id="trips-region-filter">
+                <option value="">All regions</option>
+                <% regions.forEach((r) => { %>
+                    <option value="<%= r %>"><%= r.charAt(0).toUpperCase() + r.slice(1) %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div>
+            <label for="trips-season-filter">Filter by season</label>
+            <select id="trips-season-filter">
+                <option value="">Any season</option>
+                <% seasons.forEach((s) => { %>
+                    <option value="<%= s %>"><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div>
+            <label for="trips-search">Search trips</label>
+            <input type="search" id="trips-search" placeholder="Name or description" maxlength="100">
+        </div>
+
+        <button type="button" id="trips-clear-filters">Clear filters</button>
+    </div>
+
     <div class="trips-state" id="trips-loading">Loading trips...</div>
     <div class="trips-state trips-error" id="trips-error" hidden></div>
-    <div class="trips-state" id="trips-empty" hidden>No trips found.</div>
+    <div class="trips-state" id="trips-empty" hidden>No trips match your filters.</div>
 
     <div id="trips-list" class="admin-trips-list"></div>
 
