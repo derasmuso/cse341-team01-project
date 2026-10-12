@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const createBookingDom = () => {
-    document.body.innerHTML = `
+  document.body.innerHTML = `
         <div class="days-display">
             <label class="day-pill selected" for="day-0">
                 <input
@@ -92,246 +92,214 @@ const createBookingDom = () => {
 };
 
 describe('Booking ticket availability', () => {
-    beforeEach(() => {
-        vi.resetModules();
-        vi.restoreAllMocks();
+  beforeEach(() => {
+    vi.resetModules();
+    vi.restoreAllMocks();
 
-        createBookingDom();
+    createBookingDom();
+  });
+
+  test('renders ticket class options', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            class: 'standard',
+          },
+          {
+            class: 'premium',
+          },
+          {
+            class: 'first',
+          },
+        ],
+      })
+    );
+
+    await import('/public/js/booking.js');
+
+    expect(document.querySelector('#ticket-standard')).not.toBeNull();
+
+    expect(document.querySelector('#ticket-premium')).not.toBeNull();
+
+    expect(document.querySelector('#ticket-first')).not.toBeNull();
+  });
+
+  test('requests ticket classes when the selected day changes', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          class: 'standard',
+        },
+      ],
     });
 
-    test('renders ticket class options', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'standard'
-                    },
-                    {
-                        class: 'premium'
-                    },
-                    {
-                        class: 'first'
-                    }
-                ]
-            })
-        );
+    vi.stubGlobal('fetch', fetchMock);
 
-        await import('/public/js/booking.js');
+    await import('/public/js/booking.js');
 
-        expect(
-            document.querySelector('#ticket-standard')
-        ).not.toBeNull();
+    const wednesday = document.querySelector('#day-1');
 
-        expect(
-            document.querySelector('#ticket-premium')
-        ).not.toBeNull();
+    wednesday.click();
 
-        expect(
-            document.querySelector('#ticket-first')
-        ).not.toBeNull();
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('requests ticket classes when the selected day changes', async () => {
-        const fetchMock = vi.fn().mockResolvedValue({
-            ok: true,
-            json: async () => [
-                {
-                    class: 'standard'
-                }
-            ]
-        });
+    expect(fetchMock).toHaveBeenCalledWith('/api/ticket-classes?day=wednesday');
+  });
 
-        vi.stubGlobal('fetch', fetchMock);
+  test('keeps available ticket classes enabled', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            class: 'standard',
+          },
+          {
+            class: 'premium',
+          },
+        ],
+      })
+    );
 
-        await import('/public/js/booking.js');
+    await import('/public/js/booking.js');
 
-        const wednesday = document.querySelector(
-            '#day-1'
-        );
-
-        wednesday.click();
-
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
-
-        expect(fetchMock).toHaveBeenCalledWith(
-            '/api/ticket-classes?day=wednesday'
-        );
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('keeps available ticket classes enabled', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'standard'
-                    },
-                    {
-                        class: 'premium'
-                    }
-                ]
-            })
-        );
+    const standard = document.querySelector('#ticket-standard');
 
-        await import('/public/js/booking.js');
+    const premium = document.querySelector('#ticket-premium');
 
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
+    expect(standard.disabled).toBe(false);
+    expect(premium.disabled).toBe(false);
+  });
 
-        const standard = document.querySelector(
-            '#ticket-standard'
-        );
+  test('disables unavailable ticket classes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            class: 'standard',
+          },
+        ],
+      })
+    );
 
-        const premium = document.querySelector(
-            '#ticket-premium'
-        );
+    await import('/public/js/booking.js');
 
-        expect(standard.disabled).toBe(false);
-        expect(premium.disabled).toBe(false);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('disables unavailable ticket classes', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'standard'
-                    }
-                ]
-            })
-        );
+    const premium = document.querySelector('#ticket-premium');
 
-        await import('/public/js/booking.js');
+    const first = document.querySelector('#ticket-first');
 
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
+    expect(premium.disabled).toBe(true);
+    expect(first.disabled).toBe(true);
+  });
 
-        const premium = document.querySelector(
-            '#ticket-premium'
-        );
+  test('adds unavailable styling to unavailable ticket cards', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            class: 'standard',
+          },
+        ],
+      })
+    );
 
-        const first = document.querySelector(
-            '#ticket-first'
-        );
+    await import('/public/js/booking.js');
 
-        expect(premium.disabled).toBe(true);
-        expect(first.disabled).toBe(true);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('adds unavailable styling to unavailable ticket cards', async () => {
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'standard'
-                    }
-                ]
-            })
-        );
+    const premiumCard = document
+      .querySelector('#ticket-premium')
+      .closest('.ticket-card');
 
-        await import('/public/js/booking.js');
+    const firstCard = document
+      .querySelector('#ticket-first')
+      .closest('.ticket-card');
 
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
+    expect(premiumCard.classList.contains('unavailable')).toBe(true);
 
-        const premiumCard = document.querySelector(
-            '#ticket-premium'
-        ).closest('.ticket-card');
+    expect(firstCard.classList.contains('unavailable')).toBe(true);
+  });
 
-        const firstCard = document.querySelector(
-            '#ticket-first'
-        ).closest('.ticket-card');
+  test('updates availability when the selected day changes', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            class: 'standard',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            class: 'premium',
+          },
+        ],
+      });
 
-        expect(
-            premiumCard.classList.contains('unavailable')
-        ).toBe(true);
+    vi.stubGlobal('fetch', fetchMock);
 
-        expect(
-            firstCard.classList.contains('unavailable')
-        ).toBe(true);
+    await import('/public/js/booking.js');
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('updates availability when the selected day changes', async () => {
-        const fetchMock = vi
-            .fn()
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'standard'
-                    }
-                ]
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [
-                    {
-                        class: 'premium'
-                    }
-                ]
-            });
+    const wednesday = document.querySelector('#day-1');
 
-        vi.stubGlobal('fetch', fetchMock);
+    wednesday.click();
 
-        await import('/public/js/booking.js');
-
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
-
-        const wednesday = document.querySelector(
-            '#day-1'
-        );
-
-        wednesday.click();
-
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
-
-        const standard = document.querySelector(
-            '#ticket-standard'
-        );
-
-        const premium = document.querySelector(
-            '#ticket-premium'
-        );
-
-        expect(fetchMock).toHaveBeenCalledTimes(2);
-        expect(standard.disabled).toBe(true);
-        expect(premium.disabled).toBe(false);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
     });
 
-    test('handles API failures without breaking the booking page', async () => {
-        const consoleError = vi
-            .spyOn(console, 'error')
-            .mockImplementation(() => {});
+    const standard = document.querySelector('#ticket-standard');
 
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockRejectedValue(
-                new Error('API request failed')
-            )
-        );
+    const premium = document.querySelector('#ticket-premium');
 
-        await expect(
-            import('/public/js/booking.js')
-        ).resolves.toBeDefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(standard.disabled).toBe(true);
+    expect(premium.disabled).toBe(false);
+  });
 
-        expect(consoleError).toHaveBeenCalled();
+  test('handles API failures without breaking the booking page', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
-        consoleError.mockRestore();
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('API request failed'))
+    );
+
+    await expect(import('/public/js/booking.js')).resolves.toBeDefined();
+
+    expect(consoleError).toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
 });

@@ -1,7 +1,8 @@
+// src/routes/router.js
+
 import { Router } from 'express';
 
 import { homePage, aboutPage, testErrorPage } from './index.js';
-import { bookingsAdminPage } from '../controllers/bookings.js';
 
 import { trainsApi, trainsPage } from './trains.js';
 
@@ -10,9 +11,10 @@ import ejsRoutes from './ejs-routes.js';
 import apiRoutes from './api-routes.js';
 
 import authRoutes from './auth-routes.js';
+
+import dashboardRoutes from './dashboard-routes.js';
+
 import adminRoutes from './admin-routes.js';
-import { userDashboardPage } from '../controllers/dashboard.js';
-import { requirePageLogin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -25,8 +27,8 @@ router.get('/', homePage);
 // Authentication and authorization routes
 router.use('/', authRoutes);
 
-// User dashboard
-router.get('/dashboard', requirePageLogin, userDashboardPage);
+// Dashboard and profile routes
+router.use('/', dashboardRoutes);
 
 // Admin routes
 router.use('/admin', adminRoutes);
@@ -41,7 +43,8 @@ router.get('/trains', trainsPage);
 router.get('/api/trains', trainsApi);
 
 // Bookings admin page
-router.get('/bookings-admin', bookingsAdminPage);
+// router.get('/bookings', bookingsAdminPage);
+// router.get('/bookings-admin', bookingsAdminPage);
 
 // EJS routes
 router.use('/trips', ejsRoutes);

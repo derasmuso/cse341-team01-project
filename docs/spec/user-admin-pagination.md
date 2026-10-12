@@ -1,78 +1,32 @@
-## Issue — Implement Pagination for User List
+## Issue: Integrate User Management Pagination into a Reusable Dashboard Layout
 
-### Objective
+### Description
 
-Implement pagination for the `GET /api/users` endpoint and update the `/users` page to display the results 10 users at a time.
+Integrate the paginated user management page into a reusable, role-aware dashboard layout shared by administrators and regular users. The layout should provide consistent navigation and a dashboard header displaying the authenticated user's name and role, while preserving existing user management functionality.
 
-### API Requirements
+### Requirements
 
-Update `GET /api/users` to support the following query parameters:
+1. Create a reusable dashboard layout with a shared header, sidebar, dashboard header, content area, and footer.
+2. Display the authenticated user's name and role in the dashboard header.
+3. Integrate the user management page into the shared layout without breaking pagination, sorting, editing, or deletion.
+4. Use the same dashboard layout for administrators and regular users.
+5. Enable Dashboard Home, Profile, and Logout for regular users, while visually disabling administrator-only navigation links.
+6. Highlight the active navigation link.
+7. Preserve existing authentication and server-side role-based authorization.
+8. Refactor dashboard-related templates into reusable EJS partials where appropriate.
 
-| Parameter | Default    | Description                      |
-| --------- | ---------- | -------------------------------- |
-| `page`    | `1`        | Page number to retrieve          |
-| `limit`   | `10`       | Number of users per page         |
-| `sort`    | `username` | Field used to sort the results   |
-| `order`   | `asc`      | Sort direction (`asc` or `desc`) |
+### Acceptance Criteria
 
-The default request:
+- The user management page uses the shared dashboard layout.
+- User pagination continues to display the correct page of results and supports Previous and Next navigation.
+- Existing sorting, editing, and deletion functionality remains operational.
+- The dashboard header displays the authenticated user's name and role.
+- Regular users see disabled administrator-only links and cannot access protected admin routes.
+- Administrators can access user management features according to their permissions.
+- Shared layout elements are not duplicated across templates.
 
-`GET /api/users`
+### Scope
 
-must return the first 10 users sorted by username in ascending order.
+**Primary outcome:** Integrate paginated user management into a reusable dashboard layout without regressing existing functionality.
 
-### Response Requirements
-
-The API response must include:
-
-* The users in a `data` array.
-* A `pagination` object containing:
-
-  * `page`
-  * `limit`
-  * `totalItems`
-  * `totalPages`
-  * `hasNextPage`
-  * `hasPreviousPage`
-
-The `totalItems` and `totalPages` values must represent the complete user list, not only the current page.
-
-If a valid page contains no users, return `200` with an empty `data` array and the appropriate pagination metadata.
-
-### Validation
-
-* `page` must be a positive integer.
-* `limit` must be a positive integer and must not exceed the API's defined maximum.
-* `sort` must use a supported user field.
-* `order` must be either `asc` or `desc`.
-* Invalid values must return `400` with a clear error message.
-
-### User Interface
-
-Update the `/users` page to:
-
-* Display a maximum of 10 users at a time.
-* Display the current page of results.
-* Provide **Previous** and **Next** controls.
-* Disable or hide Previous on the first page.
-* Disable or hide Next on the last page.
-* Request the appropriate page from `GET /api/users` when navigating.
-* Preserve the default username sorting.
-
-### Database and Code Structure
-
-* Apply pagination at the database/model level using the appropriate skip/limit operations.
-* Keep HTTP request/response handling in the controller.
-* Do not pass the raw query object directly to the database.
-* Preserve the existing authentication and authorization requirements for `/api/users`.
-
-### Documentation and Testing
-
-* Update Swagger to document `page`, `limit`, `sort`, and `order`, including their defaults and valid values.
-* Test the default request, different pages, sorting, page boundaries, invalid parameters, and pagination metadata.
-* Verify the `/users` pagination controls work correctly.
-* Run ESLint and ensure there are no errors.
-
-### Out of Scope
-
-Keyword search and role filtering will be implemented separately in PR 2.
+**Secondary outcome:** Establish shared dashboard components for other dashboard-linked pages.

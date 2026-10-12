@@ -1,3 +1,15 @@
+.trips-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    margin-block: var(--space-lg);
+}
+
+.trips-pagination[hidden] {
+    display: none;
+}
+
 .routes-grid {
     display: flex;
     flex-direction: column;

@@ -10,34 +10,34 @@ await connectToDb();
 
 // Connect to MongoDB using Mongoose.
 try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-        dbName: process.env.MONGODB_DB_NAME
-    });
+  await mongoose.connect(process.env.MONGODB_URI, {
+    dbName: process.env.MONGODB_DB_NAME,
+  });
 } catch (error) {
-    console.error('Mongoose failed to connect to MongoDB:', error.message);
-    process.exit(1);
+  console.error('Mongoose failed to connect to MongoDB:', error.message);
+  process.exit(1);
 }
 
 // Start the live-reload WebSocket server in development mode.
 if (NODE_ENV.includes('dev')) {
-    const ws = await import('ws');
+  const ws = await import('ws');
 
-    try {
-        const wsPort = parseInt(PORT) + 1;
-        const wsServer = new ws.WebSocketServer({ port: wsPort });
+  try {
+    const wsPort = parseInt(PORT) + 1;
+    const wsServer = new ws.WebSocketServer({ port: wsPort });
 
-        wsServer.on('listening', () => {
-            console.log(`WebSocket server is running on port ${wsPort}`);
-        });
+    wsServer.on('listening', () => {
+      console.log(`WebSocket server is running on port ${wsPort}`);
+    });
 
-        wsServer.on('error', (error) => {
-            console.error('WebSocket server error:', error);
-        });
-    } catch (error) {
-        console.error('Failed to start WebSocket server:', error);
-    }
+    wsServer.on('error', (error) => {
+      console.error('WebSocket server error:', error);
+    });
+  } catch (error) {
+    console.error('Failed to start WebSocket server:', error);
+  }
 }
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://127.0.0.1:${PORT}`);
+  console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

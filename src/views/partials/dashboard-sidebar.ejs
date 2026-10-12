@@ -1,0 +1,38 @@
+<% const isAdmin=user && user.role==='2' ; %>
+
+    <aside class="dashboard-sidebar">
+        <div class="dashboard-sidebar-header">
+            <h2>Dashboard</h2>
+        </div>
+
+        <nav class="dashboard-nav">
+            <a href="<%= isAdmin ? '/admin/dashboard' : '/dashboard' %>"
+                class="dashboard-nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                Dashboard Home
+            </a>
+
+            <a href="/profile" class="dashboard-nav-link <%= currentPage === 'profile' ? 'active' : '' %>">
+                Profile
+            </a>
+
+            <a href="/admin/users" class="dashboard-nav-link <%= isAdmin ? '' : 'disabled' %>" <% if (!isAdmin) { %>
+                aria-disabled="true"
+                tabindex="-1"
+                <% } %>
+                    >
+                    Manage Users
+            </a>
+
+            <a href="/admin/bookings" class="dashboard-nav-link <%= isAdmin ? '' : 'disabled' %>" <% if (!isAdmin) { %>
+                aria-disabled="true"
+                tabindex="-1"
+                <% } %>
+                    >
+                    Manage Bookings
+            </a>
+
+            <a href="/logout" class="dashboard-nav-link">
+                Logout
+            </a>
+        </nav>
+    </aside>

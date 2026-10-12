@@ -1,21 +1,15 @@
-<%- include('../partials/header') %>
-
-<section class="dashboard-hero">
-    <h1>Welcome, <%= user.displayName %></h1>
-    <p>Here are the trips you are booked on.</p>
-</section>
-
-<section class="dashboard-links">
-    <a class="btn" href="/bookings-admin">Booking admin</a>
-    <a class="btn" href="/users-admin">User admin</a>
-</section>
-
 <section class="dashboard-bookings">
-    <h2>My bookings</h2>
+    <h2>My bookings</h2><hr><br>
 
-    <div class="dashboard-state" id="my-bookings-loading">Loading your bookings...</div>
+    <div class="dashboard-state" id="my-bookings-loading">
+        Loading your bookings...
+    </div>
+
     <div class="dashboard-state dashboard-error" id="my-bookings-error" hidden></div>
-    <div class="dashboard-state" id="my-bookings-empty" hidden>You are not a passenger on any bookings yet.</div>
+
+    <div class="dashboard-state" id="my-bookings-empty" hidden>
+        You are not a passenger on any bookings yet.
+    </div>
 
     <table class="dashboard-table" id="my-bookings-table" hidden>
         <thead>
@@ -27,6 +21,7 @@
                 <th>Booked On</th>
             </tr>
         </thead>
+
         <tbody id="my-bookings-list"></tbody>
     </table>
 
@@ -40,5 +35,3 @@
         </tr>
     </template>
 </section>
-
-<%- include('../partials/footer') %>

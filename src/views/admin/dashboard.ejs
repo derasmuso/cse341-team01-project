@@ -1,4 +1,43 @@
-<%- include('../partials/header') %>
-    <h1>Admin Dashboard</h1>
-    <p>Welcome to the Admin Dashboard.</p>
-    <%- include('../partials/footer') %>
+<!-- Admin Dashboard -->
+<main class="dashboard-main">
+    <section class="dashboard-bookings">
+        <h2>My bookings</h2><hr><br>
+
+        <div class="dashboard-state" id="my-bookings-loading">
+            Loading your bookings...
+        </div>
+
+        <div class="dashboard-state dashboard-error" id="my-bookings-error" hidden></div>
+
+        <div class="dashboard-state" id="my-bookings-empty" hidden>
+            You are not a passenger on any bookings yet.
+        </div>
+
+        <table class="dashboard-table" id="my-bookings-table" hidden>
+            <thead>
+                <tr>
+                    <th>Confirmation #</th>
+                    <th>Ticket Class</th>
+                    <th>Travel Day</th>
+                    <th>Passengers</th>
+                    <th>Booked On</th>
+                </tr>
+            </thead>
+
+            <tbody id="my-bookings-list"></tbody>
+        </table>
+
+        <template id="my-booking-row-template">
+            <tr>
+                <td data-field="id"></td>
+                <td data-field="ticketClass"></td>
+                <td data-field="selectedDay"></td>
+                <td data-field="passengers"></td>
+                <td data-field="createdAt"></td>
+            </tr>
+        </template>
+    </section>
+
+</main>
+
+    

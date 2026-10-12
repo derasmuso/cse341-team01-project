@@ -6,23 +6,23 @@ const ticketClassSchema = new mongoose.Schema(
       type: String,
       enum: ['standard', 'premium', 'first'],
       required: true,
-      unique: true
+      unique: true,
     },
 
     pricePerKm: {
       type: Number,
       required: true,
-      min: 0
+      min: 0,
     },
 
     amenities: {
       type: [String],
-      required: true
+      required: true,
     },
 
     description: {
       type: String,
-      required: true
+      required: true,
     },
 
     availableDays: {
@@ -34,13 +34,13 @@ const ticketClassSchema = new mongoose.Schema(
         'thursday',
         'friday',
         'saturday',
-        'sunday'
+        'sunday',
       ],
-      required: true
-    }
+      required: true,
+    },
   },
   {
-    collection: 'ticketClasses'
+    collection: 'ticketClasses',
   }
 );
 
