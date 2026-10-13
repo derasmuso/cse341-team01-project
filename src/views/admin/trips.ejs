@@ -1,0 +1,62 @@
+<main class="admin-trips-page">
+    <h2>Manage Trips</h2>
+    <hr><br>
+
+    <p id="trips-message" role="status" aria-live="polite"></p>
+
+    <div class="trips-filters">
+        <div>
+            <label for="trips-region-filter">Filter by region</label>
+            <select id="trips-region-filter">
+                <option value="">All regions</option>
+                <% regions.forEach((r) => { %>
+                    <option value="<%= r %>"><%= r.charAt(0).toUpperCase() + r.slice(1) %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div>
+            <label for="trips-season-filter">Filter by season</label>
+            <select id="trips-season-filter">
+                <option value="">Any season</option>
+                <% seasons.forEach((s) => { %>
+                    <option value="<%= s %>"><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div>
+            <label for="trips-search">Search trips</label>
+            <input type="search" id="trips-search" placeholder="Name or description" maxlength="100">
+        </div>
+
+        <button type="button" id="trips-clear-filters">Clear filters</button>
+    </div>
+
+    <div class="trips-state" id="trips-loading">Loading trips...</div>
+    <div class="trips-state trips-error" id="trips-error" hidden></div>
+    <div class="trips-state" id="trips-empty" hidden>No trips match your filters.</div>
+
+    <div id="trips-list" class="admin-trips-list"></div>
+
+    <nav id="trips-pagination" class="admin-trips-pagination" aria-label="Trip list pagination" hidden>
+        <button type="button" id="trips-previous-page" disabled>Previous</button>
+        <span id="trips-page-info">Page 1 of 1</span>
+        <button type="button" id="trips-next-page" disabled>Next</button>
+    </nav>
+</main>
+
+<template id="admin-trip-row-template">
+    <article class="admin-trip-row">
+        <header>
+            <h3 data-field="name"></h3>
+            <span data-field="region" class="trip-region-badge"></span>
+        </header>
+        <p><strong>Route:</strong> <span data-field="start"></span> → <span data-field="end"></span></p>
+        <p><strong>Duration:</strong> <span data-field="duration"></span> · <strong>Distance:</strong> <span data-field="distance"></span>km</p>
+        <p><strong>Best Season:</strong> <span data-field="season"></span></p>
+        <p data-field="description"></p>
+    </article>
+</template>
+
+<script type="module" src="/js/admin-trips.js"></script>
