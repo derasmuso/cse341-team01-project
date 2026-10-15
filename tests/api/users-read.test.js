@@ -1,3 +1,12 @@
+/**
+ * Read-tests file with tests setup for authentication
+ * sessions, sensitive-data checks, and expected 
+ * behavior. 
+ * It remains focused on read operations only and
+ * retains your existing tests. 
+ */
+
+
 import { beforeEach, describe, expect, test } from 'vitest';
 import request from 'supertest';
 
@@ -5,8 +14,11 @@ import app from '../../app.js';
 import { createUser } from '../../src/models/users.js';
 import User from '../../src/models/schemas/users.js';
 
+// Use the same password for test accounts to simplify login setup.
 const TEST_PASSWORD = 'TestPassword123!';
 
+// Define predictable test users so tests can identify records by stable values
+// instead of hardcoding generated MongoDB IDs.
 const testUsers = {
   admin: {
     displayName: 'Admin User',
@@ -28,10 +40,14 @@ const testUsers = {
   },
 };
 
+// Each agent maintains its own session so requests use the correct user's
+// authentication credentials.
 let adminAgent;
 let firstUserAgent;
 let secondUserAgent;
 
+// Log in through the real application rather than bypassing authentication.
+// The redirect confirms that the login endpoint accepted the credentials.
 const login = async (agent, user) => {
   const response = await agent.post('/login').type('form').send({
     email: user.email,
@@ -41,6 +57,8 @@ const login = async (agent, user) => {
   expect(response.status).toBe(302);
 };
 
+// Check that API responses do not expose private authentication information.
+// This helper checks top-level fields on each returned user object.
 const expectNoSensitiveFields = (users) => {
   for (const user of users) {
     expect(user).not.toHaveProperty('passwordHash');
@@ -54,19 +72,22 @@ const expectNoSensitiveFields = (users) => {
 };
 
 beforeEach(async () => {
-  // Create three users using the existing model function.
+  // The shared test setup should reset the temporary database before each
+  // test. Create fresh users so every test has predictable records.
   const adminId = await createUser(testUsers.admin);
   await createUser(testUsers.firstUser);
   await createUser(testUsers.secondUser);
 
-  // Promote one user to administrator.
+  // Promote the first account to administrator using the application's
+  // existing role representation.
   await User.findByIdAndUpdate(adminId, { role: '2' });
 
-  // Separate agents maintain independent login sessions.
+  // Create independent sessions for the administrator and regular users.
   adminAgent = request.agent(app);
   firstUserAgent = request.agent(app);
   secondUserAgent = request.agent(app);
 
+  // Authenticate each agent through the real login endpoint.
   await login(adminAgent, testUsers.admin);
   await login(firstUserAgent, testUsers.firstUser);
   await login(secondUserAgent, testUsers.secondUser);
@@ -74,6 +95,7 @@ beforeEach(async () => {
 
 describe('GET /api/users authentication', () => {
   test('returns 401 when the request is unauthenticated', async () => {
+    // Use a plain request instead of an authenticated agent.
     const response = await request(app).get('/api/users');
 
     expect(response.status).toBe(401);
@@ -83,12 +105,16 @@ describe('GET /api/users authentication', () => {
   });
 });
 
+/*******************************************
+ *  Administrator Access
+ * *************************************** */
 describe('GET /api/users administrator access', () => {
   test('allows an administrator to retrieve all users', async () => {
     const response = await adminAgent.get('/api/users');
 
     expect(response.status).toBe(200);
 
+    // Verify the response structure and default pagination metadata.
     expect(response.body).toEqual(
       expect.objectContaining({
         data: expect.any(Array),
@@ -105,6 +131,7 @@ describe('GET /api/users administrator access', () => {
 
     expect(response.body.data).toHaveLength(3);
 
+    // Check that all three expected accounts are present, regardless of order.
     expect(response.body.data).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -130,7 +157,9 @@ describe('GET /api/users administrator access', () => {
     expectNoSensitiveFields(response.body.data);
   });
 
-  test('supports pagination when retrieving users', async () => {
+  test('supports basic pagination when retrieving users', async () => {
+    // This is a basic read-endpoint check; detailed pagination and filtering
+    // behavior belongs in the dedicated pagination-and-search test file.
     const response = await adminAgent.get('/api/users?page=1&limit=2');
 
     expect(response.status).toBe(200);
@@ -149,12 +178,14 @@ describe('GET /api/users administrator access', () => {
   });
 });
 
+/* *******************************************
+ *  Regular User Access
+ * *************************************** */
 describe('GET /api/users regular-user access', () => {
   test('returns only the authenticated user', async () => {
     const response = await firstUserAgent.get('/api/users');
 
     expect(response.status).toBe(200);
-
     expect(response.body.data).toHaveLength(1);
 
     expect(response.body.data[0]).toEqual(
@@ -164,6 +195,7 @@ describe('GET /api/users regular-user access', () => {
       })
     );
 
+    // Pagination metadata should reflect the records visible to this user.
     expect(response.body.pagination).toEqual(
       expect.objectContaining({
         totalItems: 1,
@@ -203,5 +235,73 @@ describe('GET /api/users regular-user access', () => {
 
     expect(response.status).toBe(200);
     expectNoSensitiveFields(response.body.data);
+  });
+});
+
+/*******************************************
+ *  Administrator and Regular User Access to
+ *  Individual Records
+ * *************************************** */
+describe('GET /api/users/:id', () => {
+  test('allows an administrator to retrieve an individual user', async () => {
+    // Find the target by username so the test does not depend on a fixed ID.
+    const user = await User.findOne({
+      username: testUsers.firstUser.username,
+    });
+
+    const response = await adminAgent.get(`/api/users/${user.id}`);
+
+    expect(response.status).toBe(200);
+
+    // Verify that the requested user's public information is returned.
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        username: testUsers.firstUser.username,
+        email: testUsers.firstUser.email,
+      })
+    );
+
+    expectNoSensitiveFields([response.body]);
+  });
+
+  test('allows a regular user to retrieve their own record', async () => {
+    const user = await User.findOne({
+      username: testUsers.firstUser.username,
+    });
+
+    const response = await firstUserAgent.get(`/api/users/${user.id}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        username: testUsers.firstUser.username,
+        email: testUsers.firstUser.email,
+      })
+    );
+
+    expectNoSensitiveFields([response.body]);
+  });
+
+  test('prevents a regular user from retrieving another user', async () => {
+    const user = await User.findOne({
+      username: testUsers.secondUser.username,
+    });
+
+    // A regular user must not access another user's private record.
+    const response = await firstUserAgent.get(`/api/users/${user.id}`);
+
+    // Use the exact status required by the existing API contract.
+    expect(response.status).toBe(403);
+  });
+
+  test('returns 401 when an unauthenticated request retrieves a user', async () => {
+    const user = await User.findOne({
+      username: testUsers.firstUser.username,
+    });
+
+    const response = await request(app).get(`/api/users/${user.id}`);
+
+    expect(response.status).toBe(401);
   });
 });
