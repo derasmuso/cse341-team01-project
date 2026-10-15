@@ -304,7 +304,7 @@ export async function updateUserById(req, res, next) {
 
 /*******************************************
  * Delete user by ID
- *******************************************/
+*******************************************/
 export async function deleteUserById(req, res, next) {
   const { id } = req.params;
 
@@ -318,7 +318,10 @@ export async function deleteUserById(req, res, next) {
    * Regular users can only delete their own account.
    * Admins can delete any user.
    */
-  if (req.user.role !== ADMIN_ROLE && req.user.id !== id) {
+  const isAdmin = req.user.role === ADMIN_ROLE;
+  const isDeletingOwnAccount = String(req.user.id) === String(id);
+
+  if (!isAdmin && !isDeletingOwnAccount) {
     return res.status(403).json({
       message: 'You are not authorized to delete this user',
     });
@@ -330,6 +333,25 @@ export async function deleteUserById(req, res, next) {
     if (!user) {
       return res.status(404).json({
         message: 'User not found',
+      });
+    }
+
+    /*
+     * Destroy the session when users delete their own accounts.
+     * Administrators deleting another user's account keep their
+     * own session active.
+     */
+    if (isDeletingOwnAccount) {
+      return req.session.destroy((error) => {
+        if (error) {
+          return next(error);
+        }
+
+        res.clearCookie('connect.sid');
+
+        return res.status(200).json({
+          message: 'Account deleted successfully. Session terminated.',
+        });
       });
     }
 
