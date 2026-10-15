@@ -37,6 +37,9 @@ export async function findUserByEmail(email) {
   });
 }
 
+/*******************************************
+ * Verify a user's password
+ *******************************************/
 export async function verifyPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
