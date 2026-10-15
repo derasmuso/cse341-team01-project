@@ -1,7 +1,11 @@
-// public/js/profile.js
+
+ // public/js/profile.js
+
+import { deleteUserById } from './user-actions.js';
 
 const profileForm = document.querySelector('#profile-form');
 const messageElement = document.querySelector('#profile-message');
+const deleteAccountButton = document.querySelector('#delete-account-btn');
 
 function showMessage(message, isError = false) {
     if (!messageElement) return;
@@ -55,6 +59,7 @@ async function readResponse(response) {
     return data;
 }
 
+// Update profile
 if (profileForm) {
     profileForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -72,17 +77,11 @@ if (profileForm) {
         const password = passwordInput.value;
 
         if (!displayName || !email) {
-            showMessage(
-                'Display name and email are required.',
-                true
-            );
+            showMessage('Display name and email are required.', true);
             return;
         }
 
-        const updateData = {
-            displayName,
-            email
-        };
+        const updateData = { displayName, email };
 
         if (password) {
             updateData.password = password;
@@ -91,11 +90,8 @@ if (profileForm) {
         try {
             showMessage('Saving your changes...');
 
-            if (submitButton) {
-                submitButton.disabled = true;
-            }
+            if (submitButton) submitButton.disabled = true;
 
-            // Use the ID rendered for the logged-in user.
             const currentUserId = getCurrentUserId();
 
             const response = await fetch(
@@ -114,16 +110,12 @@ if (profileForm) {
             const data = await readResponse(response);
             const updatedUser = data.user || data;
 
-            // Update the form with the saved values.
             displayNameInput.value =
                 updatedUser.displayName ?? displayName;
 
-            emailInput.value =
-                updatedUser.email ?? email;
-
+            emailInput.value = updatedUser.email ?? email;
             passwordInput.value = '';
 
-            // Update the dashboard welcome heading if present.
             const welcomeHeading = document.querySelector(
                 '#dashboard-welcome'
             );
@@ -136,15 +128,44 @@ if (profileForm) {
             showMessage('Profile updated successfully.');
         } catch (error) {
             console.error('Profile update failed:', error);
+            showMessage(error.message || 'Failed to update profile.', true);
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
+    });
+}
+
+// Delete account
+if (deleteAccountButton && profileForm) {
+    deleteAccountButton.addEventListener('click', async () => {
+        try {
+            const userId = getCurrentUserId();
+
+            deleteAccountButton.disabled = true;
+            showMessage('Deleting your account...');
+
+            const deleted = await deleteUserById(
+                userId,
+                'Are you sure you want to permanently delete your account? This action cannot be undone.'
+            );
+
+            if (deleted) {
+                showMessage('Account deleted successfully. Redirecting...');
+                window.location.replace('/');
+            } else {
+                // The user cancelled the confirmation.
+                showMessage('');
+                deleteAccountButton.disabled = false;
+            }
+        } catch (error) {
+            console.error('Account deletion failed:', error);
 
             showMessage(
-                error.message || 'Failed to update profile.',
+                error.message || 'Failed to delete your account.',
                 true
             );
-        } finally {
-            if (submitButton) {
-                submitButton.disabled = false;
-            }
+
+            deleteAccountButton.disabled = false;
         }
     });
 }
